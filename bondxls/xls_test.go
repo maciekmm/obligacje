@@ -11,7 +11,7 @@ import (
 
 func TestXLSRepository_Lookup(t *testing.T) {
 	tests := []struct {
-		series  string		
+		series  string
 		want    bond.Bond
 		wantErr bool
 	}{
@@ -28,7 +28,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				Price:                 10000,
 				ExchangePrice:         0,
 				MarginPercentage:      0,
-				BuyoutInMonths:        3,
+				BuyoutMonths:          3,
 				InterestRecalculation: bond.InterestRecalculationNone,
 				InterestPeriods:       []bond.Percentage{150},
 			},
@@ -41,7 +41,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				Price:                 10000,
 				ExchangePrice:         9990,
 				MarginPercentage:      0,
-				BuyoutInMonths:        12,
+				BuyoutMonths:          12,
 				InterestRecalculation: bond.InterestRecalculationMonthly,
 				InterestPeriods:       []bond.Percentage{525, 600, 650, 650, 675, 675, 675, 675, 675, 675, 675, 675},
 			},
@@ -54,7 +54,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				Price:                 10000,
 				ExchangePrice:         9990,
 				MarginPercentage:      0,
-				BuyoutInMonths:        12,
+				BuyoutMonths:          12,
 				InterestRecalculation: bond.InterestRecalculationMonthly,
 				InterestPeriods:       []bond.Percentage{425},
 			},
@@ -67,7 +67,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				Price:                 10000,
 				ExchangePrice:         9990,
 				MarginPercentage:      0,
-				BuyoutInMonths:        36,
+				BuyoutMonths:          36,
 				InterestRecalculation: bond.InterestRecalculationNone,
 				InterestPeriods:       []bond.Percentage{650},
 			},
@@ -80,7 +80,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				Price:                 10000,
 				ExchangePrice:         9990,
 				InterestPeriods:       []bond.Percentage{565},
-				BuyoutInMonths:        36,
+				BuyoutMonths:          36,
 				InterestRecalculation: bond.InterestRecalculationNone,
 				MarginPercentage:      0,
 			},
@@ -93,7 +93,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				Price:                 10000,
 				ExchangePrice:         9990,
 				MarginPercentage:      100,
-				BuyoutInMonths:        120,
+				BuyoutMonths:          120,
 				InterestRecalculation: bond.InterestRecalculationYearly,
 				InterestPeriods:       []bond.Percentage{170, 1200, 1710, 300, 590},
 			},
@@ -105,7 +105,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				ISIN:                  "PL0000117552",
 				Price:                 10000,
 				ExchangePrice:         9990,
-				BuyoutInMonths:        12,
+				BuyoutMonths:          12,
 				InterestRecalculation: bond.InterestRecalculationMonthly,
 				InterestPeriods:       []bond.Percentage{575, 575, 575, 575, 575, 525, 525, 500, 500, 475, 450, 425},
 			},

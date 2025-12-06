@@ -154,9 +154,9 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 				return bond, fmt.Errorf("error parsing buyout period value: %w", err)
 			}
 			if parts[1] == "rok" || parts[1] == "lat/a" {
-				bond.BuyoutInMonths = periodValue * 12
+				bond.BuyoutMonths = periodValue * 12
 			} else if parts[1] == "miesięcy" || parts[1] == "miesiąc" || parts[1] == "miesiące" {
-				bond.BuyoutInMonths = periodValue
+				bond.BuyoutMonths = periodValue
 			}
 		case header == "Cena emisyjna":
 			if price, err := parsePrice(cell); err == nil {

@@ -109,7 +109,7 @@ func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
 		t.Fatalf("Lookup() expected %s, got %s", expectedEDOSeries, bond.Series)
 	}
 
-	if bond.BuyoutInMonths != 120 {
-		t.Fatalf("Lookup() expected buyout in 10 years, got %d months", bond.BuyoutInMonths)
+	if bond.BuyoutMonths != 120 {
+		t.Fatalf("Lookup() expected buyout in 10 years, got %d months", bond.BuyoutMonths)
 	}
 }

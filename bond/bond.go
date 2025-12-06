@@ -19,6 +19,6 @@ type Bond struct {
 	ExchangePrice         Price
 	MarginPercentage      Percentage
 	InterestPeriods       []Percentage
-	BuyoutInMonths        int
+	BuyoutMonths          int
 	InterestRecalculation InterestRecalculation
 }
