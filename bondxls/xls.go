@@ -1,4 +1,4 @@
-package bond
+package bondxls
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/maciekmm/obligacje/bond"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -17,34 +18,34 @@ var (
 	}
 )
 
-func interestRecalculation(seriesPrefix string) InterestRecalculation {
+func interestRecalculation(seriesPrefix string) bond.InterestRecalculation {
 	switch seriesPrefix {
 	case "OTS", "TOS", "DOS":
-		return InterestRecalculationNone
+		return bond.InterestRecalculationNone
 	case "ROR", "DOR":
-		return InterestRecalculationMonthly
+		return bond.InterestRecalculationMonthly
 	case "COI", "EDO", "ROS", "ROD":
-		return InterestRecalculationYearly
+		return bond.InterestRecalculationYearly
 	default:
-		return InterestRecalculationUnknown
+		return bond.InterestRecalculationUnknown
 	}
 }
 
 type XLSXRepository struct {
-	bonds map[string]Bond
+	bonds map[string]bond.Bond
 }
 
-func (r *XLSXRepository) Lookup(series string) (Bond, error) {
-	bond, ok := r.bonds[series]
+func (r *XLSXRepository) Lookup(series string) (bond.Bond, error) {
+	bnd, ok := r.bonds[series]
 	if !ok {
-		return Bond{}, ErrSeriesNotFound
+		return bond.Bond{}, bond.ErrSeriesNotFound
 	}
-	return bond, nil
+	return bnd, nil
 }
 
 func LoadFromXLSX(file string) (*XLSXRepository, error) {
 	repo := &XLSXRepository{
-		bonds: make(map[string]Bond),
+		bonds: make(map[string]bond.Bond),
 	}
 
 	xls, err := excelize.OpenFile(file)
@@ -66,8 +67,8 @@ func LoadFromXLSX(file string) (*XLSXRepository, error) {
 	return repo, nil
 }
 
-func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]Bond, error) {
-	bonds := make(map[string]Bond)
+func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, error) {
+	bonds := make(map[string]bond.Bond)
 
 	rows, err := xls.GetRows(seriesPrefix)
 	if err != nil {
@@ -104,7 +105,7 @@ func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]Bond, error
 			}
 			continue
 		}
-		bond := Bond{}
+		bond := bond.Bond{}
 		for j, cell := range row {
 			if j >= len(headers) {
 				slog.Warn("extra cell in row", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell)
@@ -180,16 +181,16 @@ func strDecimalAsInt(cell string) (int, error) {
 	}
 }
 
-func parsePrice(cell string) (Price, error) {
+func parsePrice(cell string) (bond.Price, error) {
 	if cell == "-" {
 		return 0, nil
 	}
 	price, err := strDecimalAsInt(cell)
-	return Price(price), err
+	return bond.Price(price), err
 }
 
-func parsePercentage(cell string) (Percentage, error) {
+func parsePercentage(cell string) (bond.Percentage, error) {
 	noPercentageSign := strings.TrimSuffix(cell, "%")
 	price, err := strDecimalAsInt(noPercentageSign)
-	return Percentage(price), err
+	return bond.Percentage(price), err
 }
