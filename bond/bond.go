@@ -5,10 +5,11 @@ type Percentage int64 // In 0.01%
 
 type InterestRecalculation string
 
-var (
+const (
 	InterestRecalculationMonthly InterestRecalculation = "monthly"
 	InterestRecalculationYearly  InterestRecalculation = "yearly"
 	InterestRecalculationNone    InterestRecalculation = "none"
+
 	InterestRecalculationUnknown InterestRecalculation = "unknown"
 )
 
