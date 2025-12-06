@@ -18,16 +18,27 @@ var (
 	}
 )
 
-func interestRecalculation(seriesPrefix string) bond.InterestRecalculation {
-	switch seriesPrefix {
+func seriesPrefix(series string) string {
+	if len(series) < 3 {
+		return ""
+	}
+	return series[:3]
+}
+
+func interestRecalculation(series string) (bond.InterestRecalculation, error) {
+	prefix := seriesPrefix(series)
+	if prefix == "" {
+		return bond.InterestRecalculationUnknown, fmt.Errorf("invalid series prefix: %s", series)
+	}
+	switch prefix {
 	case "OTS", "TOS", "DOS":
-		return bond.InterestRecalculationNone
+		return bond.InterestRecalculationNone, nil
 	case "ROR", "DOR":
-		return bond.InterestRecalculationMonthly
+		return bond.InterestRecalculationMonthly, nil
 	case "COI", "EDO", "ROS", "ROD":
-		return bond.InterestRecalculationYearly
+		return bond.InterestRecalculationYearly, nil
 	default:
-		return bond.InterestRecalculationUnknown
+		return bond.InterestRecalculationUnknown, fmt.Errorf("invalid series prefix: %s", prefix)
 	}
 }
 
@@ -105,68 +116,80 @@ func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, 
 			}
 			continue
 		}
-		bond := bond.Bond{}
-		for j, cell := range row {
-			if j >= len(headers) {
-				slog.Warn("extra cell in row", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell)
-				break
-			}
-			if cell == "" {
-				continue
-			}
-			header := headers[j]
-			switch {
-			case header == "Seria":
-				bond.Series = cell
-			case header == "Kod ISIN":
-				bond.ISIN = cell
-			case header == "Data wykupu":
-				parts := strings.Split(cell, " ")
-				if len(parts) < 2 {
-					slog.Warn("invalid buyout period format", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell)
-					continue
-				}
-				periodValue, err := strconv.Atoi(parts[0])
-				if err != nil {
-					slog.Warn("error parsing buyout period value", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell, "error", err)
-					continue
-				}
-				if parts[1] == "rok" || parts[1] == "lat/a" {
-					bond.BuyoutInMonths = periodValue * 12
-				} else if parts[1] == "miesięcy" || parts[1] == "miesiąc" || parts[1] == "miesiące" {
-					bond.BuyoutInMonths = periodValue
-				}
-			case header == "Cena emisyjna":
-				if price, err := parsePrice(cell); err == nil {
-					bond.Price = price
-				} else {
-					slog.Warn("error parsing price", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell, "error", err)
-				}
-			case header == "Cena zamiany":
-				if price, err := parsePrice(cell); err == nil {
-					bond.ExchangePrice = price
-				} else {
-					slog.Warn("error parsing exchange price", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell, "error", err)
-				}
-			case strings.HasPrefix(header, "Oprocentowanie"):
-				if percentage, err := parsePercentage(cell); err == nil {
-					bond.InterestPeriods = append(bond.InterestPeriods, percentage)
-				} else {
-					slog.Warn("error parsing interest percentage", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell, "error", err)
-				}
-			case strings.HasPrefix(header, "Marża"):
-				if percentage, err := parsePercentage(cell); err == nil {
-					bond.MarginPercentage = percentage
-				} else {
-					slog.Warn("error parsing margin percentage", "sheet", seriesPrefix, "row", i+1, "cell_index", j, "value", cell, "error", err)
-				}
-			}
+
+		bond, err := rowToBond(headers, row)
+		if err != nil {
+			slog.Warn("skipping row", "sheet", seriesPrefix, "row", i+1, "series", row[0], "error", err)
+			continue
 		}
-		bond.InterestRecalculation = interestRecalculation(seriesPrefix)
+
 		bonds[bond.Series] = bond
 	}
 
 	return bonds, nil
+}
+
+func rowToBond(headers, row []string) (bond.Bond, error) {
+	bond := bond.Bond{}
+	for j, cell := range row {
+		if j >= len(headers) {
+			return bond, fmt.Errorf("extra cell in row")
+		}
+		if cell == "" {
+			continue
+		}
+		header := headers[j]
+		switch {
+		case header == "Seria":
+			bond.Series = cell
+		case header == "Kod ISIN":
+			bond.ISIN = cell
+		case header == "Data wykupu":
+			parts := strings.Split(cell, " ")
+			if len(parts) < 2 {
+				return bond, fmt.Errorf("invalid buyout period format")
+			}
+			periodValue, err := strconv.Atoi(parts[0])
+			if err != nil {
+				return bond, fmt.Errorf("error parsing buyout period value: %w", err)
+			}
+			if parts[1] == "rok" || parts[1] == "lat/a" {
+				bond.BuyoutInMonths = periodValue * 12
+			} else if parts[1] == "miesięcy" || parts[1] == "miesiąc" || parts[1] == "miesiące" {
+				bond.BuyoutInMonths = periodValue
+			}
+		case header == "Cena emisyjna":
+			if price, err := parsePrice(cell); err == nil {
+				bond.Price = price
+			} else {
+				return bond, fmt.Errorf("error parsing price: %w", err)
+			}
+		case header == "Cena zamiany":
+			if price, err := parsePrice(cell); err == nil {
+				bond.ExchangePrice = price
+			} else {
+				return bond, fmt.Errorf("error parsing exchange price: %w", err)
+			}
+		case strings.HasPrefix(header, "Oprocentowanie"):
+			if percentage, err := parsePercentage(cell); err == nil {
+				bond.InterestPeriods = append(bond.InterestPeriods, percentage)
+			} else {
+				return bond, fmt.Errorf("error parsing interest percentage: %w", err)
+			}
+		case strings.HasPrefix(header, "Marża"):
+			if percentage, err := parsePercentage(cell); err == nil {
+				bond.MarginPercentage = percentage
+			} else {
+				return bond, fmt.Errorf("error parsing margin percentage: %w", err)
+			}
+		}
+	}
+	recalc, err := interestRecalculation(bond.Series)
+	if err != nil {
+		return bond, fmt.Errorf("error parsing interest recalculation: %w", err)
+	}
+	bond.InterestRecalculation = recalc
+	return bond, nil
 }
 
 func strDecimalAsInt(cell string) (int, error) {
