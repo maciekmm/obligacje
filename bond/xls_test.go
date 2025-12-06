@@ -110,7 +110,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 	}
-	r, err := LoadFromFile(filepath.Join(testutil.TestDataDirectory(), "data.xlsx"))
+	r, err := LoadFromXLSX(filepath.Join(testutil.TestDataDirectory(), "data.xlsx"))
 	if err != nil {
 		t.Fatalf("LoadFromFile() error = %v", err)
 		return

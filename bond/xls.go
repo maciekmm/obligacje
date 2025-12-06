@@ -30,11 +30,11 @@ func interestRecalculation(seriesPrefix string) InterestRecalculation {
 	}
 }
 
-type BondRepository struct {
+type XLSXRepository struct {
 	bonds map[string]Bond
 }
 
-func (r *BondRepository) Lookup(series string) (Bond, error) {
+func (r *XLSXRepository) Lookup(series string) (Bond, error) {
 	bond, ok := r.bonds[series]
 	if !ok {
 		return Bond{}, ErrSeriesNotFound
@@ -42,8 +42,8 @@ func (r *BondRepository) Lookup(series string) (Bond, error) {
 	return bond, nil
 }
 
-func LoadFromFile(file string) (*BondRepository, error) {
-	repo := &BondRepository{
+func LoadFromXLSX(file string) (*XLSXRepository, error) {
+	repo := &XLSXRepository{
 		bonds: make(map[string]Bond),
 	}
 
