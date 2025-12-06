@@ -154,13 +154,13 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 				return bond, fmt.Errorf("error parsing buyout period value: %w", err)
 			}
 			if parts[1] == "rok" || parts[1] == "lat/a" {
-				bond.BuyoutMonths = periodValue * 12
+				bond.MonthsToMaturity = periodValue * 12
 			} else if parts[1] == "miesięcy" || parts[1] == "miesiąc" || parts[1] == "miesiące" {
-				bond.BuyoutMonths = periodValue
+				bond.MonthsToMaturity = periodValue
 			}
 		case header == "Cena emisyjna":
 			if price, err := parsePrice(cell); err == nil {
-				bond.Price = price
+				bond.FaceValue = price
 			} else {
 				return bond, fmt.Errorf("error parsing price: %w", err)
 			}
@@ -178,7 +178,7 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 			}
 		case strings.HasPrefix(header, "Marża"):
 			if percentage, err := parsePercentage(cell); err == nil {
-				bond.MarginPercentage = percentage
+				bond.Margin = percentage
 			} else {
 				return bond, fmt.Errorf("error parsing margin percentage: %w", err)
 			}

@@ -13,12 +13,14 @@ var (
 )
 
 type Bond struct {
-	Series                string
-	ISIN                  string
-	Price                 Price
-	ExchangePrice         Price
-	MarginPercentage      Percentage
+	Series string
+	ISIN   string
+
+	FaceValue        Price
+	MonthsToMaturity int
+	ExchangePrice    Price
+
+	Margin                Percentage
 	InterestPeriods       []Percentage
-	BuyoutMonths          int
 	InterestRecalculation InterestRecalculation
 }
