@@ -1,6 +1,8 @@
 package bondxls
 
 import (
+	"log/slog"
+	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -111,7 +113,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 	}
-	r, err := LoadFromXLSX(filepath.Join(testutil.TestDataDirectory(), "data.xlsx"))
+	r, err := LoadFromXLSX(slog.New(slog.NewTextHandler(os.Stdout, nil)), filepath.Join(testutil.TestDataDirectory(), "data.xlsx"))
 	if err != nil {
 		t.Fatalf("LoadFromFile() error = %v", err)
 		return

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"log/slog"
 	"path/filepath"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ func TestDownloadLatestBondXLS_FindsFile(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	err := DownloadLatestBondXLS(ctx, outputFile)
+	err := downloadLatestBondXLS(ctx, outputFile)
 	if err != nil {
 		t.Fatalf("DownloadLatestBondXLS() error = %v", err)
 	}
@@ -43,7 +44,7 @@ func TestDownloadLatestBondXLS_ConvertsToXLSX(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	err := DownloadLatestBondXLS(ctx, xlsFile)
+	err := downloadLatestBondXLS(ctx, xlsFile)
 	if err != nil {
 		t.Fatalf("DownloadLatestBondXLS() error = %v", err)
 	}
@@ -68,6 +69,33 @@ func TestDownloadLatestBondXLS_ConvertsToXLSX(t *testing.T) {
 	t.Logf("Successfully converted to XLSX: %s (size: %d bytes)", xlsxFile, info.Size())
 }
 
+func TestDownloadLatestAndConvert(t *testing.T) {
+	tmpDir := t.TempDir()
+	xlsxFile := filepath.Join(tmpDir, "bonds.xlsx")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := DownloadLatestAndConvert(ctx, xlsxFile)
+	if err != nil {
+		t.Fatalf("DownloadLatestAndConvert() error = %v", err)
+	}
+
+	if _, err := os.Stat(xlsxFile); os.IsNotExist(err) {
+		t.Fatalf("Converted XLSX file does not exist: %s", xlsxFile)
+	}
+
+	info, err := os.Stat(xlsxFile)
+	if err != nil {
+		t.Fatalf("Failed to stat XLSX file: %v", err)
+	}
+	if info.Size() == 0 {
+		t.Fatal("Converted XLSX file is empty")
+	}
+
+	t.Logf("Successfully downloaded and converted to XLSX: %s (size: %d bytes)", xlsxFile, info.Size())
+}
+
 func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
 	tmpDir := t.TempDir()
 	xlsFile := filepath.Join(tmpDir, "bonds.xls")
@@ -75,7 +103,7 @@ func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	err := DownloadLatestBondXLS(ctx, xlsFile)
+	err := downloadLatestBondXLS(ctx, xlsFile)
 	if err != nil {
 		t.Fatalf("DownloadLatestBondXLS() error = %v", err)
 	}
@@ -85,7 +113,7 @@ func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
 		t.Fatalf("ToXLSX() error = %v", err)
 	}
 
-	repo, err := LoadFromXLSX(xlsxFile)
+	repo, err := LoadFromXLSX(slog.New(slog.NewTextHandler(os.Stdout, nil)), xlsxFile)
 	if err != nil {
 		t.Fatalf("LoadFromXLSX() error = %v", err)
 	}

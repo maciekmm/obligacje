@@ -1,6 +1,7 @@
 package calculator
 
 import (
+	"log/slog"
 	"path/filepath"
 	"testing"
 	"time"
@@ -24,7 +25,7 @@ func MustLoadLocation(name string) *time.Location {
 
 func LoadBondRepository() bond.Repository {
 	xlsxFile := filepath.Join(testutil.TestDataDirectory(), "data.xlsx")
-	repo, err := bondxls.LoadFromXLSX(xlsxFile)
+	repo, err := bondxls.LoadFromXLSX(slog.Default(), xlsxFile)
 	if err != nil {
 		panic(err)
 	}

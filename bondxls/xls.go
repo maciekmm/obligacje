@@ -43,7 +43,8 @@ func interestRecalculation(series string) (bond.InterestRecalculation, error) {
 }
 
 type XLSXRepository struct {
-	bonds map[string]bond.Bond
+	logger *slog.Logger
+	bonds  map[string]bond.Bond
 }
 
 func (r *XLSXRepository) Lookup(series string) (bond.Bond, error) {
@@ -54,9 +55,10 @@ func (r *XLSXRepository) Lookup(series string) (bond.Bond, error) {
 	return bnd, nil
 }
 
-func LoadFromXLSX(file string) (*XLSXRepository, error) {
+func LoadFromXLSX(logger *slog.Logger, file string) (*XLSXRepository, error) {
 	repo := &XLSXRepository{
-		bonds: make(map[string]bond.Bond),
+		logger: logger,
+		bonds:  make(map[string]bond.Bond),
 	}
 
 	xls, err := excelize.OpenFile(file)
@@ -66,19 +68,19 @@ func LoadFromXLSX(file string) (*XLSXRepository, error) {
 	defer xls.Close()
 
 	for _, seriesPrefix := range supportedSeries {
-		if bonds, err := parseSheet(xls, seriesPrefix); err != nil {
+		if bonds, err := parseSheet(logger, xls, seriesPrefix); err != nil {
 			return nil, fmt.Errorf("error loading sheet %s: %w", seriesPrefix, err)
 		} else {
 			for series, bond := range bonds {
 				repo.bonds[series] = bond
 			}
-			slog.Info("loaded bonds", "bonds_no", len(bonds), "series", seriesPrefix)
+			logger.Info("loaded bonds", "bonds_no", len(bonds), "series", seriesPrefix)
 		}
 	}
 	return repo, nil
 }
 
-func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, error) {
+func parseSheet(logger *slog.Logger, xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, error) {
 	bonds := make(map[string]bond.Bond)
 
 	rows, err := xls.GetRows(seriesPrefix)
@@ -89,7 +91,7 @@ func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, 
 	var headers []string
 	for i, row := range rows {
 		if len(row) < 2 {
-			slog.Debug("skipping short row", "sheet", seriesPrefix, "row", i+1)
+			logger.Debug("skipping short row", "sheet", seriesPrefix, "row", i+1)
 			continue
 		}
 		if i == 0 {
@@ -104,7 +106,7 @@ func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, 
 		}
 		if !strings.HasPrefix(row[0], seriesPrefix) {
 			if i == 1 {
-				slog.Debug("found second header row, appending values", "sheet", seriesPrefix, "row", i+1, "seriesPrefix", row[0])
+				logger.Debug("found second header row, appending values", "sheet", seriesPrefix, "row", i+1, "seriesPrefix", row[0])
 				// second header row
 				for j, cell := range row {
 					if cell != "" {
@@ -112,14 +114,14 @@ func parseSheet(xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, 
 					}
 				}
 			} else {
-				slog.Debug("skipping row", "sheet", seriesPrefix, "row", i+1, "series", row[0])
+				logger.Debug("skipping row", "sheet", seriesPrefix, "row", i+1, "series", row[0])
 			}
 			continue
 		}
 
 		bond, err := rowToBond(headers, row)
 		if err != nil {
-			slog.Warn("skipping row", "sheet", seriesPrefix, "row", i+1, "series", row[0], "error", err)
+			logger.Warn("skipping row", "sheet", seriesPrefix, "row", i+1, "series", row[0], "error", err)
 			continue
 		}
 

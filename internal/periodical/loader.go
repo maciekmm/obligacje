@@ -1,4 +1,4 @@
-package periodicaldata
+package periodical
 
 import (
 	"errors"
@@ -35,15 +35,17 @@ type Loader[T any] struct {
 }
 
 func NewLoader[T any](interval time.Duration, load LoadFunc[T], errBehavior ErrBehavior) *Loader[T] {
-	return &Loader[T]{
+	loader := &Loader[T]{
 		interval:    interval,
 		load:        load,
 		ticker:      time.NewTicker(interval),
 		errBehavior: errBehavior,
 	}
+	loader.start()
+	return loader
 }
 
-func (l *Loader[T]) Start() {
+func (l *Loader[T]) start() {
 	go func() {
 		l.loadAndSet()
 		for range l.ticker.C {
@@ -56,7 +58,7 @@ func (l *Loader[T]) loadAndSet() {
 	new, err := l.load()
 	if err != nil {
 		if l.errBehavior == ErrBehaviorReturnError {
-			slog.Error("failed to load data", "err", err)
+			slog.Error("failed to load new data", "err", err)
 			l.current.Store(value[T]{err: err})
 		}
 		return
