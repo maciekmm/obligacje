@@ -60,7 +60,9 @@ func (l *Loader[T]) loadAndSet() {
 		if l.errBehavior == ErrBehaviorReturnError {
 			slog.Error("failed to load new data", "err", err)
 			l.current.Store(value[T]{err: err})
+			return
 		}
+		slog.Error("failed to load new data, keeping old", "err", err)
 		return
 	}
 
