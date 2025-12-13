@@ -1,5 +1,7 @@
 package bond
 
+import "time"
+
 type Price int64      // In 0.01 units
 type Percentage int64 // In 0.01%
 
@@ -24,4 +26,7 @@ type Bond struct {
 	Margin                Percentage
 	InterestPeriods       []Percentage
 	InterestRecalculation InterestRecalculation
+
+	SaleStart time.Time
+	SaleEnd   time.Time
 }

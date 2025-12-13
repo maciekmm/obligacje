@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/maciekmm/obligacje/bond"
 	"github.com/xuri/excelize/v2"
@@ -16,6 +17,10 @@ var (
 		"ROR", "DOR",
 		"COI", "EDO", "ROS", "ROD",
 	}
+)
+
+const (
+	dateFormat = "_2/01/2006"
 )
 
 func seriesPrefix(series string) string {
@@ -155,10 +160,13 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 			if err != nil {
 				return bond, fmt.Errorf("error parsing buyout period value: %w", err)
 			}
-			if parts[1] == "rok" || parts[1] == "lat/a" {
+			switch parts[1] {
+			case "rok", "lat/a":
 				bond.MonthsToMaturity = periodValue * 12
-			} else if parts[1] == "miesięcy" || parts[1] == "miesiąc" || parts[1] == "miesiące" {
+			case "miesięcy", "miesiąc", "miesiące":
 				bond.MonthsToMaturity = periodValue
+			default:
+				return bond, fmt.Errorf("invalid buyout period format")
 			}
 		case header == "Cena emisyjna":
 			if price, err := parsePrice(cell); err == nil {
@@ -184,6 +192,14 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 			} else {
 				return bond, fmt.Errorf("error parsing margin percentage: %w", err)
 			}
+		case header == "Początek sprzedaży":
+			if saleStart, err := time.Parse(dateFormat, cell); err == nil {
+				bond.SaleStart = saleStart
+			}
+		case header == "Koniec sprzedaży":
+			if saleEnd, err := time.Parse(dateFormat, cell); err == nil {
+				bond.SaleEnd = saleEnd
+			}
 		}
 	}
 	recalc, err := interestRecalculation(bond.Series)
@@ -191,7 +207,38 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 		return bond, fmt.Errorf("error parsing interest recalculation: %w", err)
 	}
 	bond.InterestRecalculation = recalc
+
+	// sometimes sale start and sale end are not provided
+	if bond.SaleStart.IsZero() {
+		bond.SaleStart = seriesToSaleStart(bond.Series, bond.MonthsToMaturity)
+		if !bond.SaleStart.IsZero() && bond.SaleEnd.IsZero() {
+			bond.SaleEnd = bond.SaleStart.AddDate(0, 1, -1)
+		}
+	}
+
+	if bond.SaleEnd.IsZero() {
+		bond.SaleEnd = bond.SaleStart.AddDate(0, 1, -1)
+	}
+
 	return bond, nil
+}
+
+func seriesToSaleStart(series string, monthsToMaturity int) time.Time {
+	if len(series) < 4 {
+		return time.Time{}
+	}
+	suffix := series[len(series)-4:]
+	month, err := strconv.Atoi(suffix[:2])
+	if err != nil {
+		return time.Time{}
+	}
+	year, err := strconv.Atoi(suffix[2:])
+	if err != nil {
+		return time.Time{}
+	}
+
+	maturity := time.Date(2000+year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	return maturity.AddDate(0, -monthsToMaturity, 0)
 }
 
 func strDecimalAsInt(cell string) (int, error) {

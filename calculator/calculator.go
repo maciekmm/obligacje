@@ -8,15 +8,12 @@ import (
 )
 
 type Calculator struct {
-	repo bond.Repository
 }
 
-func NewCalculator(repo bond.Repository) *Calculator {
-	return &Calculator{
-		repo: repo,
-	}
+func NewCalculator() *Calculator {
+	return &Calculator{}
 }
 
-func (c *Calculator) Calculate(series string, purchasedAt time.Time, valuatedAt time.Time) (bond.Price, error) {
+func (c *Calculator) Calculate(bondSeries bond.Bond, purchasedAt time.Time, valuatedAt time.Time) (bond.Price, error) {
 	return 0, errors.New("not implemented")
 }

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/maciekmm/obligacje/bond"
 	"github.com/maciekmm/obligacje/internal/testutil"
@@ -33,6 +34,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				MonthsToMaturity:      3,
 				InterestRecalculation: bond.InterestRecalculationNone,
 				InterestPeriods:       []bond.Percentage{150},
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2017-10-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2017-10-31")),
 			},
 		},
 		{
@@ -46,6 +50,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				MonthsToMaturity:      12,
 				InterestRecalculation: bond.InterestRecalculationMonthly,
 				InterestPeriods:       []bond.Percentage{525, 600, 650, 650, 675, 675, 675, 675, 675, 675, 675, 675},
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2022-06-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2022-06-30")),
 			},
 		},
 		{
@@ -59,6 +66,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				MonthsToMaturity:      12,
 				InterestRecalculation: bond.InterestRecalculationMonthly,
 				InterestPeriods:       []bond.Percentage{425},
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-12-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-12-31")),
 			},
 		},
 		{
@@ -72,6 +82,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				MonthsToMaturity:      36,
 				InterestRecalculation: bond.InterestRecalculationNone,
 				InterestPeriods:       []bond.Percentage{650},
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2022-08-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2022-08-31")),
 			},
 		},
 		{
@@ -85,6 +98,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				MonthsToMaturity:      36,
 				InterestRecalculation: bond.InterestRecalculationNone,
 				Margin:                0,
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-07-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-07-31")),
 			},
 		},
 		{
@@ -98,6 +114,25 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				MonthsToMaturity:      120,
 				InterestRecalculation: bond.InterestRecalculationYearly,
 				InterestPeriods:       []bond.Percentage{170, 1200, 1710, 300, 590},
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2021-05-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2021-05-31")),
+			},
+		},
+		{
+			series: "EDO1235",
+			want: bond.Bond{
+				Series:                "EDO1235",
+				ISIN:                  "PL0000118667",
+				FaceValue:             10000,
+				ExchangePrice:         9990,
+				Margin:                200,
+				MonthsToMaturity:      120,
+				InterestRecalculation: bond.InterestRecalculationYearly,
+				InterestPeriods:       []bond.Percentage{560},
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-12-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-12-31")),
 			},
 		},
 		{
@@ -110,6 +145,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				MonthsToMaturity:      12,
 				InterestRecalculation: bond.InterestRecalculationMonthly,
 				InterestPeriods:       []bond.Percentage{575, 575, 575, 575, 575, 525, 525, 500, 500, 475, 450, 425},
+
+				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-01-01")),
+				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-01-31")),
 			},
 		},
 	}

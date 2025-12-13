@@ -87,34 +87,7 @@ func TestCalculator_Calculate(t *testing.T) {
 			name: "Bond purchased in the future",
 			args: args{
 				series:      "EDO0935",
-				purchasedAt: time.Date(2026, time.September, 2, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Bond series does not exist (invalid month)",
-			args: args{
-				series:      "EDO1335",
-				purchasedAt: time.Date(2024, time.September, 2, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Bond series does not exist (invalid year)",
-			args: args{
-				series:      "EDO0965",
-				purchasedAt: time.Date(2024, time.September, 2, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Bond series does not exist (unknown series)",
-			args: args{
-				series:      "SEP1335",
-				purchasedAt: time.Date(2024, time.September, 2, 0, 0, 0, 0, warsawTimezone),
+				purchasedAt: time.Now().AddDate(1, 0, 0),
 				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
 			},
 			wantErr: true,
@@ -130,11 +103,17 @@ func TestCalculator_Calculate(t *testing.T) {
 		},
 	}
 
-	c := NewCalculator(LoadBondRepository())
+	c := NewCalculator()
+	repo := LoadBondRepository()
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.Calculate(tt.args.series, tt.args.purchasedAt, tt.args.valuatedAt)
+			bond, err := repo.Lookup(tt.args.series)
+			if err != nil {
+				t.Errorf("Lookup() error = %v", err)
+				return
+			}
+			got, err := c.Calculate(bond, tt.args.purchasedAt, tt.args.valuatedAt)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Calculate() error = %v, wantErr %v", err, tt.wantErr)
 				return
