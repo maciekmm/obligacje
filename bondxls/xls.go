@@ -14,7 +14,7 @@ import (
 
 var (
 	supportedNames = []string{
-		"OTS", "TOS", "DOS",
+		"TOS", "DOS",
 		"ROR", "DOR",
 		"COI", "EDO", "ROS", "ROD",
 	}
