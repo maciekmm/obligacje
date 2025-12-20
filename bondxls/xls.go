@@ -238,7 +238,7 @@ func seriesToSaleStart(series string, monthsToMaturity int) time.Time {
 		return time.Time{}
 	}
 
-	maturity := time.Date(2000+year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	maturity := time.Date(2000+year, time.Month(month), 1, 0, 0, 0, 0, tz.WarsawTimezone)
 	return maturity.AddDate(0, -monthsToMaturity, 0)
 }
 
