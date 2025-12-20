@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/maciekmm/obligacje/bond"
+	"github.com/maciekmm/obligacje/tz"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -193,11 +194,11 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 				return bond, fmt.Errorf("error parsing margin percentage: %w", err)
 			}
 		case header == "Początek sprzedaży":
-			if saleStart, err := time.Parse(dateFormat, cell); err == nil {
+			if saleStart, err := time.ParseInLocation(dateFormat, cell, tz.WarsawTimezone); err == nil {
 				bond.SaleStart = saleStart
 			}
 		case header == "Koniec sprzedaży":
-			if saleEnd, err := time.Parse(dateFormat, cell); err == nil {
+			if saleEnd, err := time.ParseInLocation(dateFormat, cell, tz.WarsawTimezone); err == nil {
 				bond.SaleEnd = saleEnd
 			}
 		}

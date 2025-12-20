@@ -10,6 +10,7 @@ import (
 
 	"github.com/maciekmm/obligacje/bond"
 	"github.com/maciekmm/obligacje/internal/testutil"
+	"github.com/maciekmm/obligacje/tz"
 )
 
 func TestXLSRepository_Lookup(t *testing.T) {
@@ -35,8 +36,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyNone,
 				InterestPeriods:         []bond.Percentage{0.0150},
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2017-10-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2017-10-31")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2017-10-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2017-10-31", tz.WarsawTimezone)),
 			},
 		},
 		{
@@ -51,8 +52,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyMonthly,
 				InterestPeriods:         []bond.Percentage{0.0525, 0.0600, 0.0650, 0.0650, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675},
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2022-06-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2022-06-30")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2022-06-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2022-06-30", tz.WarsawTimezone)),
 			},
 		},
 		{
@@ -67,8 +68,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyMonthly,
 				InterestPeriods:         []bond.Percentage{0.0425},
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-12-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-12-31")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2025-12-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2025-12-31", tz.WarsawTimezone)),
 			},
 		},
 		{
@@ -83,8 +84,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyNone,
 				InterestPeriods:         []bond.Percentage{0.0650},
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2022-08-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2022-08-31")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2022-08-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2022-08-31", tz.WarsawTimezone)),
 			},
 		},
 		{
@@ -99,8 +100,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyNone,
 				Margin:                  0.00,
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-07-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-07-31")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2025-07-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2025-07-31", tz.WarsawTimezone)),
 			},
 		},
 		{
@@ -115,8 +116,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyYearly,
 				InterestPeriods:         []bond.Percentage{0.0170, 0.1200, 0.1710, 0.0300, 0.0590},
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2021-05-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2021-05-31")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2021-05-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2021-05-31", tz.WarsawTimezone)),
 			},
 		},
 		{
@@ -131,8 +132,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyYearly,
 				InterestPeriods:         []bond.Percentage{0.056},
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-12-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-12-31")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2025-12-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2025-12-31", tz.WarsawTimezone)),
 			},
 		},
 		{
@@ -146,8 +147,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyMonthly,
 				InterestPeriods:         []bond.Percentage{0.0575, 0.0575, 0.0575, 0.0575, 0.0575, 0.0525, 0.0525, 0.0500, 0.0500, 0.0475, 0.0450, 0.0425},
 
-				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-01-01")),
-				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-01-31")),
+				SaleStart: testutil.Must(time.ParseInLocation(time.DateOnly, "2025-01-01", tz.WarsawTimezone)),
+				SaleEnd:   testutil.Must(time.ParseInLocation(time.DateOnly, "2025-01-31", tz.WarsawTimezone)),
 			},
 		},
 	}
