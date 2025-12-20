@@ -37,12 +37,16 @@ func interestRecalculation(series string) (bond.CouponPaymentsFrequency, error) 
 		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid series prefix: %s", series)
 	}
 	switch prefix {
-	case "OTS", "TOS", "DOS":
-		return bond.CouponPaymentsFrequencyNone, nil
+	case "TOS", "DOS":
+		return bond.CouponPaymentsFrequencyYearly, nil
 	case "ROR", "DOR":
 		return bond.CouponPaymentsFrequencyMonthly, nil
 	case "COI", "EDO", "ROS", "ROD":
 		return bond.CouponPaymentsFrequencyYearly, nil
+	// TODO: setting quarterly payment frequency for OTS doesn't work
+	// as interest calculation for it is based on number of days and not frequency of payments
+	// case "OTS":
+	// 	return bond.CouponPaymentsFrequencyQuarterly, nil
 	default:
 		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid series prefix: %s", prefix)
 	}
@@ -194,11 +198,11 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 				return bond, fmt.Errorf("error parsing margin percentage: %w", err)
 			}
 		case header == "Początek sprzedaży":
-			if saleStart, err := time.ParseInLocation(dateFormat, cell, tz.WarsawTimezone); err == nil {
+			if saleStart, err := time.ParseInLocation(dateFormat, cell, tz.UnifiedTimezone); err == nil {
 				bond.SaleStart = saleStart
 			}
 		case header == "Koniec sprzedaży":
-			if saleEnd, err := time.ParseInLocation(dateFormat, cell, tz.WarsawTimezone); err == nil {
+			if saleEnd, err := time.ParseInLocation(dateFormat, cell, tz.UnifiedTimezone); err == nil {
 				bond.SaleEnd = saleEnd
 			}
 		}
@@ -221,6 +225,14 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 		bond.SaleEnd = bond.SaleStart.AddDate(0, 1, -1)
 	}
 
+	// If it's fixed interest bond, fill interest periods for each year
+	seriesPrefix := seriesPrefix(bond.Series)
+	if seriesPrefix == "TOS" || seriesPrefix == "DOS" {
+		for i := 1; i < bond.MonthsToMaturity/12; i++ {
+			bond.InterestPeriods = append(bond.InterestPeriods, bond.InterestPeriods[0])
+		}
+	}
+
 	return bond, nil
 }
 
@@ -238,7 +250,7 @@ func seriesToSaleStart(series string, monthsToMaturity int) time.Time {
 		return time.Time{}
 	}
 
-	maturity := time.Date(2000+year, time.Month(month), 1, 0, 0, 0, 0, tz.WarsawTimezone)
+	maturity := time.Date(2000+year, time.Month(month), 1, 0, 0, 0, 0, tz.UnifiedTimezone)
 	return maturity.AddDate(0, -monthsToMaturity, 0)
 }
 

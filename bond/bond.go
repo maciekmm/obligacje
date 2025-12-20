@@ -13,10 +13,11 @@ type Percentage float64
 type CouponPaymentsFrequency int
 
 const (
-	CouponPaymentsFrequencyMonthly CouponPaymentsFrequency = 12
-	CouponPaymentsFrequencyYearly  CouponPaymentsFrequency = 1
-	CouponPaymentsFrequencyNone    CouponPaymentsFrequency = 1
-	CouponPaymentsFrequencyUnknown CouponPaymentsFrequency = -1
+	CouponPaymentsFrequencyMonthly   CouponPaymentsFrequency = 12
+	CouponPaymentsFrequencyQuarterly CouponPaymentsFrequency = 4
+	CouponPaymentsFrequencyYearly    CouponPaymentsFrequency = 1
+	CouponPaymentsFrequencyNone      CouponPaymentsFrequency = 1
+	CouponPaymentsFrequencyUnknown   CouponPaymentsFrequency = -1
 )
 
 func (cpf CouponPaymentsFrequency) Months() int {
@@ -57,9 +58,9 @@ func (b Bond) Period(i int, purchaseDay int) (time.Time, time.Time, error) {
 		return time.Time{}, time.Time{}, fmt.Errorf("invalid purchase day: %d", purchaseDay)
 	}
 
-	purchasedAt := time.Date(b.SaleStart.Year(), b.SaleStart.Month(), purchaseDay, 0, 0, 0, 0, tz.WarsawTimezone)
+	purchasedAt := time.Date(b.SaleStart.Year(), b.SaleStart.Month(), purchaseDay, 0, 0, 0, 0, tz.UnifiedTimezone)
 
-	startAt := time.Date(purchasedAt.Year(), purchasedAt.Month()+time.Month(i*b.CouponPaymentsFrequency.Months()), 1, 0, 0, 0, 0, tz.WarsawTimezone)
+	startAt := time.Date(purchasedAt.Year(), purchasedAt.Month()+time.Month(i*b.CouponPaymentsFrequency.Months()), 1, 0, 0, 0, 0, tz.UnifiedTimezone)
 	lastDayOfPeriodStartDay := lastDayOfMonth(startAt.Year(), startAt.Month())
 	if purchaseDay > lastDayOfPeriodStartDay {
 		startAt = startAt.AddDate(0, 0, lastDayOfPeriodStartDay-1)
@@ -67,7 +68,7 @@ func (b Bond) Period(i int, purchaseDay int) (time.Time, time.Time, error) {
 		startAt = startAt.AddDate(0, 0, purchaseDay-1)
 	}
 
-	endAt := time.Date(purchasedAt.Year(), purchasedAt.Month()+time.Month((i+1)*b.CouponPaymentsFrequency.Months()), 1, 0, 0, 0, 0, tz.WarsawTimezone)
+	endAt := time.Date(purchasedAt.Year(), purchasedAt.Month()+time.Month((i+1)*b.CouponPaymentsFrequency.Months()), 1, 0, 0, 0, 0, tz.UnifiedTimezone)
 	lastDayOfPeriodEndDay := lastDayOfMonth(endAt.Year(), endAt.Month())
 	if purchaseDay > lastDayOfPeriodEndDay {
 		endAt = endAt.AddDate(0, 0, lastDayOfPeriodEndDay-1)

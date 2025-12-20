@@ -119,7 +119,7 @@ func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
 		t.Fatalf("LoadFromXLSX() error = %v", err)
 	}
 
-	warsawTime := time.Now().In(tz.WarsawTimezone)
+	warsawTime := time.Now().In(tz.UnifiedTimezone)
 	warsawMonth := warsawTime.Month()
 
 	expectedEDOSeries := fmt.Sprintf("EDO%02d%02d", warsawMonth, (warsawTime.Year()+10)%100)

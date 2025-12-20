@@ -34,16 +34,16 @@ func (c *Calculator) Calculate(bnd bond.Bond, purchasedAt time.Time, valuatedAt 
 			break
 		}
 
-		if valuatedAt.After(end) {
+		if valuatedAt.After(end) || valuatedAt.Equal(end) {
 			price = float64(price) * (1.0 + float64(perc)/float64(bnd.CouponPaymentsFrequency))
 		} else {
-			periodDays := int(end.Sub(start).Hours() / 24)
-			heldDays := int(valuatedAt.Sub(start).Hours() / 24)
+			periodDays := int(math.Round(end.Sub(start).Hours() / 24))
+			heldDays := int(math.Round(valuatedAt.Sub(start).Hours() / 24))
 			price = float64(price) * (1.0 + float64(perc)/float64(bnd.CouponPaymentsFrequency)*float64(heldDays)/float64(periodDays))
 		}
 
 		if len(bnd.InterestPeriods) == i+1 && valuatedAt.After(end) {
-			return 0, errors.New("valuation date is after last known interest period")
+			return bond.Price(math.Round(price*100.0) / 100.0), errors.New("valuation date is after last known interest period")
 		}
 	}
 
