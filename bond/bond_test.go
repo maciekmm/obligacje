@@ -17,8 +17,8 @@ func TestBond_Period(t *testing.T) {
 		maturityMonths int
 
 		// period
-		i            uint
-		purchasedDay uint
+		i            int
+		purchasedDay int
 
 		periodStart time.Time
 		periodEnd   time.Time
@@ -168,12 +168,55 @@ func TestBond_Period(t *testing.T) {
 					return
 				}
 				t.Errorf("Period() error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 			if !start.Equal(tt.periodStart) {
-				t.Errorf("Period() = %v, want %v", start, tt.periodStart)
+				t.Errorf("Period Start() = %v, want %v", start, tt.periodStart)
 			}
 			if !end.Equal(tt.periodEnd) {
-				t.Errorf("Period() = %v, want %v", end, tt.periodEnd)
+				t.Errorf("Period End() = %v, want %v", end, tt.periodEnd)
+			}
+		})
+	}
+}
+
+func TestBond_InterestPeriodCount(t *testing.T) {
+	tests := []struct {
+		name string // description of this test case
+
+		monthsToMaturity int
+		couponFrequency  CouponPaymentsFrequency
+
+		interestPeriods int
+	}{
+		{
+			name:             "EDO",
+			monthsToMaturity: 120,
+			couponFrequency:  CouponPaymentsFrequencyYearly,
+			interestPeriods:  10,
+		},
+		{
+			name:             "ROR",
+			monthsToMaturity: 12,
+			couponFrequency:  CouponPaymentsFrequencyMonthly,
+			interestPeriods:  12,
+		},
+		{
+			name:             "TOS",
+			monthsToMaturity: 36,
+			couponFrequency:  CouponPaymentsFrequencyNone,
+			interestPeriods:  3,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			b := Bond{
+				MonthsToMaturity:        tt.monthsToMaturity,
+				CouponPaymentsFrequency: tt.couponFrequency,
+			}
+			got := b.InterestPeriodCount()
+			if got != tt.interestPeriods {
+				t.Errorf("InterestPeriodCount() = %v, want %v", got, tt.interestPeriods)
 			}
 		})
 	}
