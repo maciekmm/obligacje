@@ -2,6 +2,7 @@ package calculator
 
 import (
 	"log/slog"
+	"math"
 	"path/filepath"
 	"testing"
 	"time"
@@ -9,10 +10,7 @@ import (
 	"github.com/maciekmm/obligacje/bond"
 	"github.com/maciekmm/obligacje/bondxls"
 	"github.com/maciekmm/obligacje/internal/testutil"
-)
-
-var (
-	warsawTimezone = MustLoadLocation("Europe/Warsaw")
+	"github.com/maciekmm/obligacje/tz"
 )
 
 func MustLoadLocation(name string) *time.Location {
@@ -48,38 +46,38 @@ func TestCalculator_Calculate(t *testing.T) {
 			name: "Known bond with known valuation",
 			args: args{
 				series:      "EDO0834",
-				purchasedAt: time.Date(2024, time.August, 8, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
+				purchasedAt: time.Date(2024, time.August, 8, 0, 0, 0, 0, tz.WarsawTimezone),
+				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.WarsawTimezone),
 			},
-			want:    10887,
+			want:    108.87,
 			wantErr: false,
 		},
 		{
 			name: "Known bond with known valuation, two interest periods",
 			args: args{
 				series:      "EDO0832",
-				purchasedAt: time.Date(2022, time.August, 20, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2024, time.August, 12, 0, 0, 0, 0, warsawTimezone),
+				purchasedAt: time.Date(2022, time.August, 20, 0, 0, 0, 0, tz.WarsawTimezone),
+				valuatedAt:  time.Date(2024, time.August, 12, 0, 0, 0, 0, tz.WarsawTimezone),
 			},
-			want:    11995,
+			want:    119.95,
 			wantErr: false,
 		},
 		{
 			name: "Known bond with known valuation",
 			args: args{
 				series:      "EDO0935",
-				purchasedAt: time.Date(2025, time.September, 2, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
+				purchasedAt: time.Date(2025, time.September, 2, 0, 0, 0, 0, tz.WarsawTimezone),
+				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.WarsawTimezone),
 			},
-			want:    10156,
+			want:    101.56,
 			wantErr: false,
 		},
 		{
 			name: "Bond purchased in a different month than the series suggests",
 			args: args{
 				series:      "EDO0935",
-				purchasedAt: time.Date(2025, time.October, 2, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
+				purchasedAt: time.Date(2025, time.October, 2, 0, 0, 0, 0, tz.WarsawTimezone),
+				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.WarsawTimezone),
 			},
 			wantErr: true,
 		},
@@ -88,7 +86,7 @@ func TestCalculator_Calculate(t *testing.T) {
 			args: args{
 				series:      "EDO0935",
 				purchasedAt: time.Now().AddDate(1, 0, 0),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, warsawTimezone),
+				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.WarsawTimezone),
 			},
 			wantErr: true,
 		},
@@ -96,8 +94,8 @@ func TestCalculator_Calculate(t *testing.T) {
 			name: "Valuation date is before purchase date",
 			args: args{
 				series:      "SEP1335",
-				purchasedAt: time.Date(2024, time.September, 2, 0, 0, 0, 0, warsawTimezone),
-				valuatedAt:  time.Date(2024, time.August, 2, 0, 0, 0, 0, warsawTimezone),
+				purchasedAt: time.Date(2024, time.September, 2, 0, 0, 0, 0, tz.WarsawTimezone),
+				valuatedAt:  time.Date(2024, time.August, 2, 0, 0, 0, 0, tz.WarsawTimezone),
 			},
 			wantErr: true,
 		},
@@ -118,7 +116,7 @@ func TestCalculator_Calculate(t *testing.T) {
 				t.Errorf("Calculate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if got != tt.want {
+			if math.Abs(float64(tt.want)-float64(got)) > 1e-9 {
 				t.Errorf("Calculate() got = %v, want %v", got, tt.want)
 			}
 		})

@@ -3,13 +3,14 @@ package bondxls
 import (
 	"context"
 	"fmt"
-	"os"
 	"log/slog"
+	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/maciekmm/obligacje/internal/xlsconv"
+	"github.com/maciekmm/obligacje/tz"
 )
 
 func TestDownloadLatestBondXLS_FindsFile(t *testing.T) {
@@ -118,12 +119,7 @@ func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
 		t.Fatalf("LoadFromXLSX() error = %v", err)
 	}
 
-	warsawTZ, err := time.LoadLocation("Europe/Warsaw")
-	if err != nil {
-		t.Fatalf("LoadLocation() error = %v", err)
-	}
-
-	warsawTime := time.Now().In(warsawTZ)
+	warsawTime := time.Now().In(tz.WarsawTimezone)
 	warsawMonth := warsawTime.Month()
 
 	expectedEDOSeries := fmt.Sprintf("EDO%02d%02d", warsawMonth, (warsawTime.Year()+10)%100)

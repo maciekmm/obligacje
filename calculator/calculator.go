@@ -15,5 +15,8 @@ func NewCalculator() *Calculator {
 }
 
 func (c *Calculator) Calculate(bondSeries bond.Bond, purchasedAt time.Time, valuatedAt time.Time) (bond.Price, error) {
-	return 0, errors.New("not implemented")
+	if purchasedAt.Before(bondSeries.SaleStart) || purchasedAt.After(bondSeries.SaleEnd) {
+		return 0, errors.New("bond must be purchased during sale period")
+	}
+	return 0, nil
 }

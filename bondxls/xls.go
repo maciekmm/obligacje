@@ -30,20 +30,20 @@ func seriesPrefix(series string) string {
 	return series[:3]
 }
 
-func interestRecalculation(series string) (bond.InterestRecalculation, error) {
+func interestRecalculation(series string) (bond.CouponPaymentsFrequency, error) {
 	prefix := seriesPrefix(series)
 	if prefix == "" {
-		return bond.InterestRecalculationUnknown, fmt.Errorf("invalid series prefix: %s", series)
+		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid series prefix: %s", series)
 	}
 	switch prefix {
 	case "OTS", "TOS", "DOS":
-		return bond.InterestRecalculationNone, nil
+		return bond.CouponPaymentsFrequencyNone, nil
 	case "ROR", "DOR":
-		return bond.InterestRecalculationMonthly, nil
+		return bond.CouponPaymentsFrequencyMonthly, nil
 	case "COI", "EDO", "ROS", "ROD":
-		return bond.InterestRecalculationYearly, nil
+		return bond.CouponPaymentsFrequencyYearly, nil
 	default:
-		return bond.InterestRecalculationUnknown, fmt.Errorf("invalid series prefix: %s", prefix)
+		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid series prefix: %s", prefix)
 	}
 }
 
@@ -206,7 +206,7 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 	if err != nil {
 		return bond, fmt.Errorf("error parsing interest recalculation: %w", err)
 	}
-	bond.InterestRecalculation = recalc
+	bond.CouponPaymentsFrequency = recalc
 
 	// sometimes sale start and sale end are not provided
 	if bond.SaleStart.IsZero() {
@@ -241,28 +241,16 @@ func seriesToSaleStart(series string, monthsToMaturity int) time.Time {
 	return maturity.AddDate(0, -monthsToMaturity, 0)
 }
 
-func strDecimalAsInt(cell string) (int, error) {
-	parts := strings.Split(cell, ".")
-	if len(parts) != 2 || len(parts[1]) != 2 {
-		return 0, fmt.Errorf("invalid format: %s", cell)
-	}
-	if priceWithPences, err := strconv.Atoi(parts[0] + parts[1]); err != nil {
-		return 0, fmt.Errorf("error parsing decimal %s: %w", cell, err)
-	} else {
-		return priceWithPences, nil
-	}
-}
-
 func parsePrice(cell string) (bond.Price, error) {
 	if cell == "-" {
 		return 0, nil
 	}
-	price, err := strDecimalAsInt(cell)
+	price, err := strconv.ParseFloat(cell, 64)
 	return bond.Price(price), err
 }
 
 func parsePercentage(cell string) (bond.Percentage, error) {
 	noPercentageSign := strings.TrimSuffix(cell, "%")
-	price, err := strDecimalAsInt(noPercentageSign)
-	return bond.Percentage(price), err
+	price, err := strconv.ParseFloat(noPercentageSign, 64)
+	return bond.Percentage(price / 100.0), err
 }

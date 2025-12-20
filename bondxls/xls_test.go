@@ -2,9 +2,9 @@ package bondxls
 
 import (
 	"log/slog"
+	"math"
 	"os"
 	"path/filepath"
-	"reflect"
 	"testing"
 	"time"
 
@@ -26,14 +26,14 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "OTS0118",
 			want: bond.Bond{
-				Series:                "OTS0118",
-				ISIN:                  "PL0000110292",
-				FaceValue:             10000,
-				ExchangePrice:         0,
-				Margin:                0,
-				MonthsToMaturity:      3,
-				InterestRecalculation: bond.InterestRecalculationNone,
-				InterestPeriods:       []bond.Percentage{150},
+				Series:                  "OTS0118",
+				ISIN:                    "PL0000110292",
+				FaceValue:               100.00,
+				ExchangePrice:           0.00,
+				Margin:                  0.00,
+				MonthsToMaturity:        3,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyNone,
+				InterestPeriods:         []bond.Percentage{0.0150},
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2017-10-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2017-10-31")),
@@ -42,14 +42,14 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "ROR0623",
 			want: bond.Bond{
-				Series:                "ROR0623",
-				ISIN:                  "PL0000114716",
-				FaceValue:             10000,
-				ExchangePrice:         9990,
-				Margin:                0,
-				MonthsToMaturity:      12,
-				InterestRecalculation: bond.InterestRecalculationMonthly,
-				InterestPeriods:       []bond.Percentage{525, 600, 650, 650, 675, 675, 675, 675, 675, 675, 675, 675},
+				Series:                  "ROR0623",
+				ISIN:                    "PL0000114716",
+				FaceValue:               100.00,
+				ExchangePrice:           99.90,
+				Margin:                  0.00,
+				MonthsToMaturity:        12,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyMonthly,
+				InterestPeriods:         []bond.Percentage{0.0525, 0.0600, 0.0650, 0.0650, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675, 0.0675},
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2022-06-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2022-06-30")),
@@ -58,14 +58,14 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "ROR1226",
 			want: bond.Bond{
-				Series:                "ROR1226",
-				ISIN:                  "PL0000118626",
-				FaceValue:             10000,
-				ExchangePrice:         9990,
-				Margin:                0,
-				MonthsToMaturity:      12,
-				InterestRecalculation: bond.InterestRecalculationMonthly,
-				InterestPeriods:       []bond.Percentage{425},
+				Series:                  "ROR1226",
+				ISIN:                    "PL0000118626",
+				FaceValue:               100.00,
+				ExchangePrice:           99.90,
+				Margin:                  0.00,
+				MonthsToMaturity:        12,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyMonthly,
+				InterestPeriods:         []bond.Percentage{0.0425},
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-12-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-12-31")),
@@ -74,14 +74,14 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "TOS0825",
 			want: bond.Bond{
-				Series:                "TOS0825",
-				ISIN:                  "PL0000113890",
-				FaceValue:             10000,
-				ExchangePrice:         9990,
-				Margin:                0,
-				MonthsToMaturity:      36,
-				InterestRecalculation: bond.InterestRecalculationNone,
-				InterestPeriods:       []bond.Percentage{650},
+				Series:                  "TOS0825",
+				ISIN:                    "PL0000113890",
+				FaceValue:               100.00,
+				ExchangePrice:           99.90,
+				Margin:                  0.00,
+				MonthsToMaturity:        36,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyNone,
+				InterestPeriods:         []bond.Percentage{0.0650},
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2022-08-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2022-08-31")),
@@ -90,14 +90,14 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "TOS0728",
 			want: bond.Bond{
-				Series:                "TOS0728",
-				ISIN:                  "PL0000118220",
-				FaceValue:             10000,
-				ExchangePrice:         9990,
-				InterestPeriods:       []bond.Percentage{565},
-				MonthsToMaturity:      36,
-				InterestRecalculation: bond.InterestRecalculationNone,
-				Margin:                0,
+				Series:                  "TOS0728",
+				ISIN:                    "PL0000118220",
+				FaceValue:               100.00,
+				ExchangePrice:           99.90,
+				InterestPeriods:         []bond.Percentage{0.0565},
+				MonthsToMaturity:        36,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyNone,
+				Margin:                  0.00,
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-07-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-07-31")),
@@ -106,14 +106,14 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "EDO0531",
 			want: bond.Bond{
-				Series:                "EDO0531",
-				ISIN:                  "PL0000113684",
-				FaceValue:             10000,
-				ExchangePrice:         9990,
-				Margin:                100,
-				MonthsToMaturity:      120,
-				InterestRecalculation: bond.InterestRecalculationYearly,
-				InterestPeriods:       []bond.Percentage{170, 1200, 1710, 300, 590},
+				Series:                  "EDO0531",
+				ISIN:                    "PL0000113684",
+				FaceValue:               100.00,
+				ExchangePrice:           99.90,
+				Margin:                  0.01,
+				MonthsToMaturity:        120,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyYearly,
+				InterestPeriods:         []bond.Percentage{0.0170, 0.1200, 0.1710, 0.0300, 0.0590},
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2021-05-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2021-05-31")),
@@ -122,14 +122,14 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "EDO1235",
 			want: bond.Bond{
-				Series:                "EDO1235",
-				ISIN:                  "PL0000118667",
-				FaceValue:             10000,
-				ExchangePrice:         9990,
-				Margin:                200,
-				MonthsToMaturity:      120,
-				InterestRecalculation: bond.InterestRecalculationYearly,
-				InterestPeriods:       []bond.Percentage{560},
+				Series:                  "EDO1235",
+				ISIN:                    "PL0000118667",
+				FaceValue:               100.00,
+				ExchangePrice:           99.90,
+				Margin:                  0.02,
+				MonthsToMaturity:        120,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyYearly,
+				InterestPeriods:         []bond.Percentage{0.056},
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-12-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-12-31")),
@@ -138,13 +138,13 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		{
 			series: "ROR0126",
 			want: bond.Bond{
-				Series:                "ROR0126",
-				ISIN:                  "PL0000117552",
-				FaceValue:             10000,
-				ExchangePrice:         9990,
-				MonthsToMaturity:      12,
-				InterestRecalculation: bond.InterestRecalculationMonthly,
-				InterestPeriods:       []bond.Percentage{575, 575, 575, 575, 575, 525, 525, 500, 500, 475, 450, 425},
+				Series:                  "ROR0126",
+				ISIN:                    "PL0000117552",
+				FaceValue:               100.00,
+				ExchangePrice:           99.90,
+				MonthsToMaturity:        12,
+				CouponPaymentsFrequency: bond.CouponPaymentsFrequencyMonthly,
+				InterestPeriods:         []bond.Percentage{0.0575, 0.0575, 0.0575, 0.0575, 0.0575, 0.0525, 0.0525, 0.0500, 0.0500, 0.0475, 0.0450, 0.0425},
 
 				SaleStart: testutil.Must(time.Parse(time.DateOnly, "2025-01-01")),
 				SaleEnd:   testutil.Must(time.Parse(time.DateOnly, "2025-01-31")),
@@ -163,9 +163,53 @@ func TestXLSRepository_Lookup(t *testing.T) {
 				t.Errorf("Lookup() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Lookup() got = %v, want %v", got, tt.want)
+			if !equal(got, tt.want) {
+				t.Errorf("Lookup() got = \n%+v, want = \n%+v", got, tt.want)
 			}
 		})
 	}
+}
+
+func equal(a, b bond.Bond) bool {
+	if a.Series != b.Series {
+		return false
+	}
+	if a.ISIN != b.ISIN {
+		return false
+	}
+	if !floatEqual(float64(a.FaceValue), float64(b.FaceValue)) {
+		return false
+	}
+	if a.MonthsToMaturity != b.MonthsToMaturity {
+		return false
+	}
+	if !floatEqual(float64(a.ExchangePrice), float64(b.ExchangePrice)) {
+		return false
+	}
+	if !floatEqual(float64(a.Margin), float64(b.Margin)) {
+		return false
+	}
+	if a.CouponPaymentsFrequency != b.CouponPaymentsFrequency {
+		return false
+	}
+	if len(a.InterestPeriods) != len(b.InterestPeriods) {
+		return false
+	}
+	for i := range a.InterestPeriods {
+		if !floatEqual(float64(a.InterestPeriods[i]), float64(b.InterestPeriods[i])) {
+			return false
+		}
+	}
+	if !a.SaleStart.Equal(b.SaleStart) {
+		return false
+	}
+	if !a.SaleEnd.Equal(b.SaleEnd) {
+		return false
+	}
+	return true
+}
+
+func floatEqual(a, b float64) bool {
+	const epsilon = 1e-9
+	return math.Abs(a-b) <= epsilon
 }
