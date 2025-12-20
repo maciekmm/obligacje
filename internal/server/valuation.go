@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func extractPurchasedDayFromSeries(series string) (int, error) {
-	if len(series) < 6 {
-		return 0, errors.New("invalid series")
+func extractPurchasedDayFromName(name string) (int, error) {
+	if len(name) < 6 {
+		return 0, errors.New("invalid name")
 	}
 
-	purchasedDayStr := series[len(series)-2:]
+	purchasedDayStr := name[len(name)-2:]
 	purchasedDay, err := strconv.Atoi(purchasedDayStr)
 	if err != nil {
 		return 0, errors.New("not a number")
@@ -26,14 +26,14 @@ func extractPurchasedDayFromSeries(series string) (int, error) {
 }
 
 func (s *Server) handleValuation(w http.ResponseWriter, r *http.Request) {
-	series := r.PathValue("series")
+	name := r.PathValue("name")
 
-	purchasedDay, err := extractPurchasedDayFromSeries(series)
+	purchasedDay, err := extractPurchasedDayFromName(name)
 	if err != nil {
-		http.Error(w, "invalid series", http.StatusBadRequest)
+		http.Error(w, "invalid name", http.StatusBadRequest)
 		return
 	}
 
-	s.calc.Calculate(series, purchasedAt, time.Now())
+	s.calc.Calculate(name, purchasedDay, time.Now())
 
 }

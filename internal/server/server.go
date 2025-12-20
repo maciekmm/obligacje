@@ -27,7 +27,7 @@ func NewServer(repo bond.Repository) *Server {
 }
 
 func (s *Server) setupRoutes() {
-	s.handler.HandleFunc("GET /v1/bond/{series}/valuation", s.handleValuation)
+	s.handler.HandleFunc("GET /v1/bond/{name}/valuation", s.handleValuation)
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {

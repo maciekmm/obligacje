@@ -97,7 +97,7 @@ func TestDownloadLatestAndConvert(t *testing.T) {
 	t.Logf("Successfully downloaded and converted to XLSX: %s (size: %d bytes)", xlsxFile, info.Size())
 }
 
-func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
+func TestDownloadLatestBondXLS_ContainsLatestBondName(t *testing.T) {
 	tmpDir := t.TempDir()
 	xlsFile := filepath.Join(tmpDir, "bonds.xls")
 
@@ -122,15 +122,15 @@ func TestDownloadLatestBondXLS_ContainsLatestBondSeries(t *testing.T) {
 	warsawTime := time.Now().In(tz.UnifiedTimezone)
 	warsawMonth := warsawTime.Month()
 
-	expectedEDOSeries := fmt.Sprintf("EDO%02d%02d", warsawMonth, (warsawTime.Year()+10)%100)
+	expectedEDOName := fmt.Sprintf("EDO%02d%02d", warsawMonth, (warsawTime.Year()+10)%100)
 
-	bond, err := repo.Lookup(expectedEDOSeries)
+	bond, err := repo.Lookup(expectedEDOName)
 	if err != nil {
 		t.Fatalf("Lookup() error = %v", err)
 	}
 
-	if bond.Series != expectedEDOSeries {
-		t.Fatalf("Lookup() expected %s, got %s", expectedEDOSeries, bond.Series)
+	if bond.Name != expectedEDOName {
+		t.Fatalf("Lookup() expected %s, got %s", expectedEDOName, bond.Name)
 	}
 
 	if bond.MonthsToMaturity != 120 {

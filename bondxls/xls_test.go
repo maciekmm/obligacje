@@ -15,19 +15,19 @@ import (
 
 func TestXLSRepository_Lookup(t *testing.T) {
 	tests := []struct {
-		series  string
+		name    string
 		want    bond.Bond
 		wantErr bool
 	}{
 		{
-			series:  "NONEXISTENT",
+			name:    "NONEXISTENT",
 			want:    bond.Bond{},
 			wantErr: true,
 		},
 		// {
-		// 	series: "OTS0118",
+		// 	name: "OTS0118",
 		// 	want: bond.Bond{
-		// 		Series:                  "OTS0118",
+		// 		Name:                  "OTS0118",
 		// 		ISIN:                    "PL0000110292",
 		// 		FaceValue:               100.00,
 		// 		ExchangePrice:           0.00,
@@ -41,9 +41,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		// 	},
 		// },
 		{
-			series: "ROR0623",
+			name: "ROR0623",
 			want: bond.Bond{
-				Series:                  "ROR0623",
+				Name:                    "ROR0623",
 				ISIN:                    "PL0000114716",
 				FaceValue:               100.00,
 				ExchangePrice:           99.90,
@@ -57,9 +57,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 		{
-			series: "ROR1226",
+			name: "ROR1226",
 			want: bond.Bond{
-				Series:                  "ROR1226",
+				Name:                    "ROR1226",
 				ISIN:                    "PL0000118626",
 				FaceValue:               100.00,
 				ExchangePrice:           99.90,
@@ -73,9 +73,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 		{
-			series: "TOS0825",
+			name: "TOS0825",
 			want: bond.Bond{
-				Series:                  "TOS0825",
+				Name:                    "TOS0825",
 				ISIN:                    "PL0000113890",
 				FaceValue:               100.00,
 				ExchangePrice:           99.90,
@@ -89,9 +89,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 		{
-			series: "TOS0728",
+			name: "TOS0728",
 			want: bond.Bond{
-				Series:                  "TOS0728",
+				Name:                    "TOS0728",
 				ISIN:                    "PL0000118220",
 				FaceValue:               100.00,
 				ExchangePrice:           99.90,
@@ -105,9 +105,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 		{
-			series: "EDO0531",
+			name: "EDO0531",
 			want: bond.Bond{
-				Series:                  "EDO0531",
+				Name:                    "EDO0531",
 				ISIN:                    "PL0000113684",
 				FaceValue:               100.00,
 				ExchangePrice:           99.90,
@@ -121,9 +121,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 		{
-			series: "EDO1235",
+			name: "EDO1235",
 			want: bond.Bond{
-				Series:                  "EDO1235",
+				Name:                    "EDO1235",
 				ISIN:                    "PL0000118667",
 				FaceValue:               100.00,
 				ExchangePrice:           99.90,
@@ -137,9 +137,9 @@ func TestXLSRepository_Lookup(t *testing.T) {
 			},
 		},
 		{
-			series: "ROR0126",
+			name: "ROR0126",
 			want: bond.Bond{
-				Series:                  "ROR0126",
+				Name:                    "ROR0126",
 				ISIN:                    "PL0000117552",
 				FaceValue:               100.00,
 				ExchangePrice:           99.90,
@@ -158,8 +158,8 @@ func TestXLSRepository_Lookup(t *testing.T) {
 		return
 	}
 	for _, tt := range tests {
-		t.Run(tt.series, func(t *testing.T) {
-			got, err := r.Lookup(tt.series)
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := r.Lookup(tt.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Lookup() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -172,7 +172,7 @@ func TestXLSRepository_Lookup(t *testing.T) {
 }
 
 func equal(a, b bond.Bond) bool {
-	if a.Series != b.Series {
+	if a.Name != b.Name {
 		return false
 	}
 	if a.ISIN != b.ISIN {

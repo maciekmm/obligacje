@@ -5,9 +5,9 @@ import (
 )
 
 var (
-	ErrSeriesNotFound = errors.New("series not found")
+	ErrNameNotFound = errors.New("name not found")
 )
 
 type Repository interface {
-	Lookup(series string) (Bond, error)
+	Lookup(name string) (Bond, error)
 }

@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	supportedSeries = []string{
+	supportedNames = []string{
 		"OTS", "TOS", "DOS",
 		"ROR", "DOR",
 		"COI", "EDO", "ROS", "ROD",
@@ -24,17 +24,17 @@ const (
 	dateFormat = "_2/01/2006"
 )
 
-func seriesPrefix(series string) string {
-	if len(series) < 3 {
+func namePrefix(name string) string {
+	if len(name) < 3 {
 		return ""
 	}
-	return series[:3]
+	return name[:3]
 }
 
-func interestRecalculation(series string) (bond.CouponPaymentsFrequency, error) {
-	prefix := seriesPrefix(series)
+func interestRecalculation(name string) (bond.CouponPaymentsFrequency, error) {
+	prefix := namePrefix(name)
 	if prefix == "" {
-		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid series prefix: %s", series)
+		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid name prefix: %s", name)
 	}
 	switch prefix {
 	case "TOS", "DOS":
@@ -48,7 +48,7 @@ func interestRecalculation(series string) (bond.CouponPaymentsFrequency, error) 
 	// case "OTS":
 	// 	return bond.CouponPaymentsFrequencyQuarterly, nil
 	default:
-		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid series prefix: %s", prefix)
+		return bond.CouponPaymentsFrequencyUnknown, fmt.Errorf("invalid name prefix: %s", prefix)
 	}
 }
 
@@ -57,10 +57,10 @@ type XLSXRepository struct {
 	bonds  map[string]bond.Bond
 }
 
-func (r *XLSXRepository) Lookup(series string) (bond.Bond, error) {
-	bnd, ok := r.bonds[series]
+func (r *XLSXRepository) Lookup(name string) (bond.Bond, error) {
+	bnd, ok := r.bonds[name]
 	if !ok {
-		return bond.Bond{}, bond.ErrSeriesNotFound
+		return bond.Bond{}, bond.ErrNameNotFound
 	}
 	return bnd, nil
 }
@@ -77,23 +77,23 @@ func LoadFromXLSX(logger *slog.Logger, file string) (*XLSXRepository, error) {
 	}
 	defer xls.Close()
 
-	for _, seriesPrefix := range supportedSeries {
-		if bonds, err := parseSheet(logger, xls, seriesPrefix); err != nil {
-			return nil, fmt.Errorf("error loading sheet %s: %w", seriesPrefix, err)
+	for _, namePrefix := range supportedNames {
+		if bonds, err := parseSheet(logger, xls, namePrefix); err != nil {
+			return nil, fmt.Errorf("error loading sheet %s: %w", namePrefix, err)
 		} else {
-			for series, bond := range bonds {
-				repo.bonds[series] = bond
+			for name, bond := range bonds {
+				repo.bonds[name] = bond
 			}
-			logger.Info("loaded bonds", "bonds_no", len(bonds), "series", seriesPrefix)
+			logger.Info("loaded bonds", "bonds_no", len(bonds), "name", namePrefix)
 		}
 	}
 	return repo, nil
 }
 
-func parseSheet(logger *slog.Logger, xls *excelize.File, seriesPrefix string) (map[string]bond.Bond, error) {
+func parseSheet(logger *slog.Logger, xls *excelize.File, namePrefix string) (map[string]bond.Bond, error) {
 	bonds := make(map[string]bond.Bond)
 
-	rows, err := xls.GetRows(seriesPrefix)
+	rows, err := xls.GetRows(namePrefix)
 	if err != nil {
 		return nil, fmt.Errorf("error getting rows: %w", err)
 	}
@@ -101,7 +101,7 @@ func parseSheet(logger *slog.Logger, xls *excelize.File, seriesPrefix string) (m
 	var headers []string
 	for i, row := range rows {
 		if len(row) < 2 {
-			logger.Debug("skipping short row", "sheet", seriesPrefix, "row", i+1)
+			logger.Debug("skipping short row", "sheet", namePrefix, "row", i+1)
 			continue
 		}
 		if i == 0 {
@@ -114,9 +114,9 @@ func parseSheet(logger *slog.Logger, xls *excelize.File, seriesPrefix string) (m
 			}
 			continue
 		}
-		if !strings.HasPrefix(row[0], seriesPrefix) {
+		if !strings.HasPrefix(row[0], namePrefix) {
 			if i == 1 {
-				logger.Debug("found second header row, appending values", "sheet", seriesPrefix, "row", i+1, "seriesPrefix", row[0])
+				logger.Debug("found second header row, appending values", "sheet", namePrefix, "row", i+1, "namePrefix", row[0])
 				// second header row
 				for j, cell := range row {
 					if cell != "" {
@@ -124,18 +124,18 @@ func parseSheet(logger *slog.Logger, xls *excelize.File, seriesPrefix string) (m
 					}
 				}
 			} else {
-				logger.Debug("skipping row", "sheet", seriesPrefix, "row", i+1, "series", row[0])
+				logger.Debug("skipping row", "sheet", namePrefix, "row", i+1, "name", row[0])
 			}
 			continue
 		}
 
 		bond, err := rowToBond(headers, row)
 		if err != nil {
-			logger.Warn("skipping row", "sheet", seriesPrefix, "row", i+1, "series", row[0], "error", err)
+			logger.Warn("skipping row", "sheet", namePrefix, "row", i+1, "name", row[0], "error", err)
 			continue
 		}
 
-		bonds[bond.Series] = bond
+		bonds[bond.Name] = bond
 	}
 
 	return bonds, nil
@@ -153,7 +153,7 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 		header := headers[j]
 		switch {
 		case header == "Seria":
-			bond.Series = cell
+			bond.Name = cell
 		case header == "Kod ISIN":
 			bond.ISIN = cell
 		case header == "Data wykupu":
@@ -207,7 +207,7 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 			}
 		}
 	}
-	recalc, err := interestRecalculation(bond.Series)
+	recalc, err := interestRecalculation(bond.Name)
 	if err != nil {
 		return bond, fmt.Errorf("error parsing interest recalculation: %w", err)
 	}
@@ -215,7 +215,7 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 
 	// sometimes sale start and sale end are not provided
 	if bond.SaleStart.IsZero() {
-		bond.SaleStart = seriesToSaleStart(bond.Series, bond.MonthsToMaturity)
+		bond.SaleStart = nameToSaleStart(bond.Name, bond.MonthsToMaturity)
 		if !bond.SaleStart.IsZero() && bond.SaleEnd.IsZero() {
 			bond.SaleEnd = bond.SaleStart.AddDate(0, 1, -1)
 		}
@@ -226,8 +226,8 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 	}
 
 	// If it's fixed interest bond, fill interest periods for each year
-	seriesPrefix := seriesPrefix(bond.Series)
-	if seriesPrefix == "TOS" || seriesPrefix == "DOS" {
+	namePrefix := namePrefix(bond.Name)
+	if namePrefix == "TOS" || namePrefix == "DOS" {
 		for i := 1; i < bond.MonthsToMaturity/12; i++ {
 			bond.InterestPeriods = append(bond.InterestPeriods, bond.InterestPeriods[0])
 		}
@@ -236,11 +236,11 @@ func rowToBond(headers, row []string) (bond.Bond, error) {
 	return bond, nil
 }
 
-func seriesToSaleStart(series string, monthsToMaturity int) time.Time {
-	if len(series) < 4 {
+func nameToSaleStart(name string, monthsToMaturity int) time.Time {
+	if len(name) < 4 {
 		return time.Time{}
 	}
-	suffix := series[len(series)-4:]
+	suffix := name[len(name)-4:]
 	month, err := strconv.Atoi(suffix[:2])
 	if err != nil {
 		return time.Time{}

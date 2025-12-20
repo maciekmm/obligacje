@@ -25,8 +25,8 @@ func (cpf CouponPaymentsFrequency) Months() int {
 }
 
 type Bond struct {
-	Series string
-	ISIN   string
+	Name string
+	ISIN string
 
 	FaceValue        Price
 	MonthsToMaturity int

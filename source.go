@@ -45,10 +45,10 @@ func (s *BondSource) Close() error {
 	return nil
 }
 
-func (s *BondSource) Lookup(series string) (bond.Bond, error) {
+func (s *BondSource) Lookup(name string) (bond.Bond, error) {
 	cur, err := s.bondsLoader.Current()
 	if err != nil {
 		return bond.Bond{}, err
 	}
-	return cur.Lookup(series)
+	return cur.Lookup(name)
 }
