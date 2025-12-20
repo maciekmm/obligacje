@@ -2,17 +2,16 @@ package bond
 
 import "time"
 
-type Price int64      // In 0.01 units
-type Percentage int64 // In 0.01%
+type Price float64
+type Percentage float64
 
-type InterestRecalculation string
+type CouponPaymentsFrequency int
 
 const (
-	InterestRecalculationMonthly InterestRecalculation = "monthly"
-	InterestRecalculationYearly  InterestRecalculation = "yearly"
-	InterestRecalculationNone    InterestRecalculation = "none"
-
-	InterestRecalculationUnknown InterestRecalculation = "unknown"
+	CouponPaymentsFrequencyMonthly CouponPaymentsFrequency = 12
+	CouponPaymentsFrequencyYearly  CouponPaymentsFrequency = 1
+	CouponPaymentsFrequencyNone    CouponPaymentsFrequency = 1
+	CouponPaymentsFrequencyUnknown CouponPaymentsFrequency = 0
 )
 
 type Bond struct {
@@ -23,10 +22,14 @@ type Bond struct {
 	MonthsToMaturity int
 	ExchangePrice    Price
 
-	Margin                Percentage
-	InterestPeriods       []Percentage
-	InterestRecalculation InterestRecalculation
+	Margin                  Percentage
+	InterestPeriods         []Percentage
+	CouponPaymentsFrequency CouponPaymentsFrequency
 
 	SaleStart time.Time
 	SaleEnd   time.Time
+}
+
+func (b Bond) Period(i uint, purchasedDay uint) (time.Time, time.Time, error) {
+	return time.Time{}, time.Time{}, nil
 }
