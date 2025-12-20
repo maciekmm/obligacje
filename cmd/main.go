@@ -1,13 +1,13 @@
 package main
 
 import (
+	"net/http"
 	"os"
-	"time"
 
 	"log/slog"
 
 	"github.com/maciekmm/obligacje"
-	"github.com/maciekmm/obligacje/calculator"
+	"github.com/maciekmm/obligacje/internal/server"
 )
 
 func main() {
@@ -20,14 +20,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer source.Close()
 
-	for {
-		time.Sleep(5 * time.Second)
-		calc := calculator.NewCalculator(source)
-		price, err := calc.Calculate("EDO0834", time.Now(), time.Now())
-		if err != nil {
-			slog.Error("failed to calculate", "err", err)
-		}
-		slog.Info("calculated", "price", price)
+	srv := server.NewServer(source)
+
+	slog.Info("starting server on :8080")
+	if err := http.ListenAndServe(":8080", srv); err != nil {
+		panic(err)
 	}
 }
