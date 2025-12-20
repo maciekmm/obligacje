@@ -44,7 +44,7 @@ func interestRecalculation(name string) (bond.CouponPaymentsFrequency, error) {
 	case "COI", "EDO", "ROS", "ROD":
 		return bond.CouponPaymentsFrequencyYearly, nil
 	// TODO: setting quarterly payment frequency for OTS doesn't work
-	// as interest calculation for it is based on number of days and not frequency of payments
+	// as interest calculation for it is based on number of days (or fixed value) and not frequency of payments
 	// case "OTS":
 	// 	return bond.CouponPaymentsFrequencyQuarterly, nil
 	default:

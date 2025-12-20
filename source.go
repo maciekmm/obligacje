@@ -27,7 +27,7 @@ type BondSource struct {
 func NewBondSource(logger *slog.Logger, dir string) (*BondSource, error) {
 	files := downloader.NewResilientFileDownloader(dir, validateBondFile, bondxls.DownloadLatestAndConvert)
 
-	bondsLoader := periodical.NewLoader[bond.Repository](12*time.Hour, func() (bond.Repository, error) {
+	bondsLoader := periodical.NewLoader(12*time.Hour, func() (bond.Repository, error) {
 		file, err := files.DownloadWithFallback(context.Background())
 		if err != nil {
 			return nil, err

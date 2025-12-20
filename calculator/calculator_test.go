@@ -32,8 +32,8 @@ func LoadBondRepository() bond.Repository {
 
 func TestCalculator_Calculate(t *testing.T) {
 	type args struct {
-		name      string
-		purchasedAt time.Time
+		name        string
+		purchaseDay int
 		valuatedAt  time.Time
 	}
 	tests := []struct {
@@ -57,8 +57,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "TOS bond before DST change",
 			args: args{
-				name:      "TOS1125",
-				purchasedAt: time.Date(2022, time.November, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "TOS1125",
+				purchaseDay: 1,
 				valuatedAt:  time.Date(2023, time.March, 26, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    102.72,
@@ -67,8 +67,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "TOS bond after DST change",
 			args: args{
-				name:      "TOS1125",
-				purchasedAt: time.Date(2022, time.November, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "TOS1125",
+				purchaseDay: 1,
 				valuatedAt:  time.Date(2023, time.March, 27, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    102.74,
@@ -77,8 +77,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "TOS bond end of valuation",
 			args: args{
-				name:      "TOS1125",
-				purchasedAt: time.Date(2022, time.November, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "TOS1125",
+				purchaseDay: 1,
 				valuatedAt:  time.Date(2025, time.November, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    121.99,
@@ -87,8 +87,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "TOS bond towards end of valuation",
 			args: args{
-				name:      "TOS1125",
-				purchasedAt: time.Date(2022, time.November, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "TOS1125",
+				purchaseDay: 1,
 				valuatedAt:  time.Date(2025, time.April, 13, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    117.66,
@@ -97,8 +97,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation",
 			args: args{
-				name:      "EDO0834",
-				purchasedAt: time.Date(2024, time.August, 12, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0834",
+				purchaseDay: 12,
 				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    108.87,
@@ -107,8 +107,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation",
 			args: args{
-				name:      "EDO0834",
-				purchasedAt: time.Date(2024, time.August, 12, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0834",
+				purchaseDay: 12,
 				valuatedAt:  time.Date(2025, time.December, 20, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    109.12,
@@ -117,8 +117,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation - first day of mth",
 			args: args{
-				name:      "EDO0834",
-				purchasedAt: time.Date(2024, time.August, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0834",
+				purchaseDay: 1,
 				valuatedAt:  time.Date(2025, time.August, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    106.80,
@@ -127,8 +127,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation",
 			args: args{
-				name:      "EDO0834",
-				purchasedAt: time.Date(2024, time.August, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0834",
+				purchaseDay: 1,
 				valuatedAt:  time.Date(2025, time.August, 2, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    106.82,
@@ -137,8 +137,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation",
 			args: args{
-				name:      "EDO0834",
-				purchasedAt: time.Date(2024, time.August, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0834",
+				purchaseDay: 1,
 				valuatedAt:  time.Date(2025, time.August, 22, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    107.17,
@@ -147,8 +147,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation",
 			args: args{
-				name:      "EDO0834",
-				purchasedAt: time.Date(2024, time.August, 2, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0834",
+				purchaseDay: 2,
 				valuatedAt:  time.Date(2025, time.August, 23, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    107.17,
@@ -157,8 +157,8 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation, two interest periods",
 			args: args{
-				name:      "EDO0832",
-				purchasedAt: time.Date(2022, time.August, 20, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0832",
+				purchaseDay: 20,
 				valuatedAt:  time.Date(2024, time.August, 9, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    119.95,
@@ -167,37 +167,19 @@ func TestCalculator_Calculate(t *testing.T) {
 		{
 			name: "Known bond with known valuation",
 			args: args{
-				name:      "EDO0935",
-				purchasedAt: time.Date(2025, time.September, 2, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0935",
+				purchaseDay: 2,
 				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			want:    101.56,
 			wantErr: false,
 		},
 		{
-			name: "Bond purchased in a different month than the name suggests",
-			args: args{
-				name:      "EDO0935",
-				purchasedAt: time.Date(2025, time.October, 2, 0, 0, 0, 0, tz.UnifiedTimezone),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.UnifiedTimezone),
-			},
-			wantErr: true,
-		},
-		{
-			name: "Bond purchased in the future",
-			args: args{
-				name:      "EDO0935",
-				purchasedAt: time.Now().AddDate(1, 0, 0),
-				valuatedAt:  time.Date(2025, time.December, 6, 0, 0, 0, 0, tz.UnifiedTimezone),
-			},
-			wantErr: true,
-		},
-		{
 			name: "Valuation date is before purchase date",
 			args: args{
-				name:      "EDO0935",
-				purchasedAt: time.Date(2025, time.September, 2, 0, 0, 0, 0, tz.UnifiedTimezone),
-				valuatedAt:  time.Date(2025, time.January, 2, 0, 0, 0, 0, tz.UnifiedTimezone),
+				name:        "EDO0935",
+				purchaseDay: 2,
+				valuatedAt:  time.Date(2025, time.September, 1, 0, 0, 0, 0, tz.UnifiedTimezone),
 			},
 			wantErr: true,
 		},
@@ -213,7 +195,7 @@ func TestCalculator_Calculate(t *testing.T) {
 				t.Errorf("Lookup() error = %v", err)
 				return
 			}
-			got, err := c.Calculate(bond, tt.args.purchasedAt, tt.args.valuatedAt)
+			got, err := c.Calculate(bond, tt.args.purchaseDay, tt.args.valuatedAt)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Calculate() error = %v, wantErr %v", err, tt.wantErr)
 				return

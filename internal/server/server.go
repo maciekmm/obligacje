@@ -1,8 +1,8 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/maciekmm/obligacje/bond"
 	"github.com/maciekmm/obligacje/calculator"
@@ -12,13 +12,15 @@ type Server struct {
 	repo    bond.Repository
 	calc    *calculator.Calculator
 	handler *http.ServeMux
+	log     *slog.Logger
 }
 
-func NewServer(repo bond.Repository) *Server {
+func NewServer(repo bond.Repository, logger *slog.Logger) *Server {
 	server := &Server{
 		repo:    repo,
 		calc:    calculator.NewCalculator(),
 		handler: http.NewServeMux(),
+		log:     logger,
 	}
 
 	server.setupRoutes()

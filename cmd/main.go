@@ -22,7 +22,9 @@ func main() {
 	}
 	defer source.Close()
 
-	srv := server.NewServer(source)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
+
+	srv := server.NewServer(source, logger)
 
 	slog.Info("starting server on :8080")
 	if err := http.ListenAndServe(":8080", srv); err != nil {

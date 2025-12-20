@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/maciekmm/obligacje/bond"
+	"github.com/maciekmm/obligacje/tz"
 )
 
 type Calculator struct {
@@ -15,17 +16,15 @@ func NewCalculator() *Calculator {
 	return &Calculator{}
 }
 
-func (c *Calculator) Calculate(bnd bond.Bond, purchasedAt time.Time, valuatedAt time.Time) (bond.Price, error) {
-	if purchasedAt.Before(bnd.SaleStart) || purchasedAt.After(bnd.SaleEnd) {
-		return 0, errors.New("bond must be purchased during sale period")
-	}
-	if valuatedAt.Before(purchasedAt) {
-		return 0, errors.New("bond must be valuated after purchase")
+func (c *Calculator) Calculate(bnd bond.Bond, purchaseDay int, valuatedAt time.Time) (bond.Price, error) {
+	purchaseDate := time.Date(bnd.SaleStart.Year(), bnd.SaleStart.Month(), purchaseDay, 0, 0, 0, 0, tz.UnifiedTimezone)
+	if valuatedAt.Before(purchaseDate) {
+		return 0, errors.New("valuation date is before purchase date")
 	}
 
 	price := float64(bnd.FaceValue)
 	for i, perc := range bnd.InterestPeriods {
-		start, end, err := bnd.Period(i, purchasedAt.Day())
+		start, end, err := bnd.Period(i, purchaseDay)
 		if err != nil {
 			return 0, err
 		}

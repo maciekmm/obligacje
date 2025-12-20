@@ -41,7 +41,7 @@ func NewResilientFileDownloader(
 	}
 }
 
-func (d *ResilientFileStore) latestValidFile(ctx context.Context) (string, error) {
+func (d *ResilientFileStore) latestValidFile() (string, error) {
 	if _, err := os.Stat(filepath.Join(d.dir, activeFile)); err != nil {
 		return "", ErrNoValidFile
 	}
@@ -80,7 +80,7 @@ func (d *ResilientFileStore) DownloadWithFallback(ctx context.Context) (string, 
 		slog.Warn("error downloading file", "error", err)
 	}
 
-	latestValid, err := d.latestValidFile(ctx)
+	latestValid, err := d.latestValidFile()
 	if err != nil {
 		return "", fmt.Errorf("error getting latest valid file: %w", err)
 	}
