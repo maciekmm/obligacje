@@ -8,15 +8,99 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"golang.org/x/net/html"
 
 	"github.com/maciekmm/obligacje/internal/xlsconv"
 )
 
 const (
-	fileURL = "https://api.dane.gov.pl/resources/765987,sprzedaz-obligacji-detalicznych/file"
+	indexURL = "https://www.gov.pl/web/finanse/obligacje-detaliczne1"
+	baseURL  = "https://www.gov.pl"
 )
 
+func scrapeXLSURL(ctx context.Context) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, indexURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch index page: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status fetching index page: %s", resp.Status)
+	}
+
+	doc, err := html.Parse(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse HTML: %w", err)
+	}
+
+	href, found := findXLSAttachmentHref(doc)
+	if !found {
+		return "", fmt.Errorf("could not find XLS attachment link on page %s", indexURL)
+	}
+
+	// href is a relative path like /attachment/... — make it absolute.
+	if strings.HasPrefix(href, "/") {
+		return baseURL + href, nil
+	}
+	return href, nil
+}
+
+func findXLSAttachmentHref(n *html.Node) (string, bool) {
+	if n.Type == html.ElementNode && n.Data == "a" {
+		if hasClass(n, "file-download") && ariaLabelContains(n, "xls") {
+			for _, attr := range n.Attr {
+				if attr.Key == "href" {
+					return attr.Val, true
+				}
+			}
+		}
+	}
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		if href, ok := findXLSAttachmentHref(c); ok {
+			return href, true
+		}
+	}
+	return "", false
+}
+
+func hasClass(n *html.Node, class string) bool {
+	for _, attr := range n.Attr {
+		if attr.Key == "class" {
+			for _, c := range strings.Fields(attr.Val) {
+				if c == class {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+func ariaLabelContains(n *html.Node, sub string) bool {
+	for _, attr := range n.Attr {
+		if attr.Key == "aria-label" {
+			return strings.Contains(strings.ToLower(attr.Val), strings.ToLower(sub))
+		}
+	}
+	return false
+}
+
 func downloadLatestBondXLS(ctx context.Context, output string) error {
+	fileURL, err := scrapeXLSURL(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to determine download URL: %w", err)
+	}
+
+	slog.Info("downloading bond file", "url", fileURL)
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fileURL, nil)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
