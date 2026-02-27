@@ -4,8 +4,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates libreoffice-calc && \
     rm -rf /var/lib/apt/lists/*
 
-ARG TARGETPLATFORM
-COPY ${TARGETPLATFORM}/obligacje /usr/local/bin/obligacje
+COPY linux/amd64/obligacje /usr/local/bin/obligacje
 
 VOLUME ["/data"]
 WORKDIR /data
