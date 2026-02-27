@@ -1,0 +1,15 @@
+FROM debian:trixie-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates libreoffice-calc && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG TARGETPLATFORM
+COPY ${TARGETPLATFORM}/obligacje /usr/local/bin/obligacje
+
+VOLUME ["/data"]
+WORKDIR /data
+
+EXPOSE 8080
+
+ENTRYPOINT ["/usr/local/bin/obligacje"]
