@@ -135,7 +135,13 @@ func DownloadLatestAndConvert(ctx context.Context, output string) error {
 	outputDir := filepath.Dir(output)
 	slog.Info("downloading latest bond XLS", "outputDir", outputDir)
 
-	xlsFile := filepath.Join(outputDir, "data.xls")
+	tempFile, err := os.CreateTemp(outputDir, "data-*.xls")
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %w", err)
+	}
+	tempFile.Close() // Close it since downloadLatestBondXLS will overwrite it
+	xlsFile := tempFile.Name()
+	defer os.Remove(xlsFile)
 
 	if err := downloadLatestBondXLS(ctx, xlsFile); err != nil {
 		return fmt.Errorf("failed to download file: %w", err)
@@ -145,15 +151,12 @@ func DownloadLatestAndConvert(ctx context.Context, output string) error {
 	if err != nil {
 		return fmt.Errorf("failed to convert file: %w", err)
 	}
+	defer os.Remove(path) // Clean up the intermediate xlsx file as well
 
 	slog.Info("converted XLS to XLSX", "path", path, "original", xlsFile)
 
 	if err := os.Rename(path, output); err != nil {
 		return fmt.Errorf("failed to move file to output: %w", err)
-	}
-
-	if err := os.Remove(xlsFile); err != nil {
-		return fmt.Errorf("failed to remove XLS file: %w", err)
 	}
 
 	return nil
