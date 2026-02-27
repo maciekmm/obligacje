@@ -9,6 +9,11 @@ import (
 	"github.com/maciekmm/obligacje/tz"
 )
 
+var (
+	ErrValuationDateBeforePurchaseDate = errors.New("valuation date is before purchase date")
+	ErrValuationDateAfterMaturity      = errors.New("valuation date is after last known interest period")
+)
+
 type Calculator struct {
 }
 
@@ -19,7 +24,7 @@ func NewCalculator() *Calculator {
 func (c *Calculator) Calculate(bnd bond.Bond, purchaseDay int, valuatedAt time.Time) (bond.Price, error) {
 	purchaseDate := time.Date(bnd.SaleStart.Year(), bnd.SaleStart.Month(), purchaseDay, 0, 0, 0, 0, tz.UnifiedTimezone)
 	if valuatedAt.Before(purchaseDate) {
-		return 0, errors.New("valuation date is before purchase date")
+		return 0, ErrValuationDateBeforePurchaseDate
 	}
 
 	price := float64(bnd.FaceValue)
@@ -42,7 +47,7 @@ func (c *Calculator) Calculate(bnd bond.Bond, purchaseDay int, valuatedAt time.T
 		}
 
 		if len(bnd.InterestPeriods) == i+1 && valuatedAt.After(end) {
-			return bond.Price(math.Round(price*100.0) / 100.0), errors.New("valuation date is after last known interest period")
+			return bond.Price(math.Round(price*100.0) / 100.0), ErrValuationDateAfterMaturity
 		}
 	}
 

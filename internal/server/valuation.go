@@ -1,15 +1,27 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/maciekmm/obligacje/bond"
+	"github.com/maciekmm/obligacje/calculator"
 	"github.com/maciekmm/obligacje/tz"
 )
+
+type ValuationResponse struct {
+	Name        string  `json:"name"`
+	ISIN        string  `json:"isin"`
+	ValuatedAt  string  `json:"valuated_at"`
+	PurchaseDay int     `json:"purchase_day"`
+	Price       float64 `json:"price"`
+	Currency    string  `json:"currency"`
+}
 
 func extractPurchaseDayFromName(name string) (int, error) {
 	if len(name) < 6 {
@@ -64,13 +76,35 @@ func (s *Server) handleValuation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	price, err := s.calc.Calculate(bnd, purchaseDay, valuatedAt)
-	if err != nil {
+	if errors.Is(err, calculator.ErrValuationDateBeforePurchaseDate) {
+		s.log.Info("valuation date before purchase date", "name", name, "purchase_day", purchaseDay, "valuated_at", valuatedAt)
+		http.Error(w, "valuation date is before purchase date", http.StatusBadRequest)
+		return
+	}
+	if err != nil && !errors.Is(err, calculator.ErrValuationDateAfterMaturity) {
 		s.log.Warn("error calculating price", "name", name, "purchase_day", purchaseDay, "valuated_at", valuatedAt, "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
 
 	s.log.Info("valuated bond", "name", name, "purchase_day", purchaseDay, "valuated_at", valuatedAt, "price", price)
+
+	accept := r.Header.Get("Accept")
+	if strings.Contains(accept, "application/json") {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(ValuationResponse{
+			Name:        nameWithPurchaseDay,
+			ISIN:        bnd.ISIN,
+			ValuatedAt:  valuatedAt.Format("2006-01-02"),
+			PurchaseDay: purchaseDay,
+			Price:       float64(price),
+			Currency:    "PLN",
+		})
+		return
+	}
+
+	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "%.2f", price)
 }
