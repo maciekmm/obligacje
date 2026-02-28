@@ -33,6 +33,7 @@ func scrapeXLSURL(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
 	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("Referer", "https://api.gov.pl")
 
 	resp, err := noRedirectClient.Do(req)
 	if err != nil {
@@ -115,6 +116,7 @@ func downloadLatestBondXLS(ctx context.Context, output string) error {
 	}
 
 	req.Header.Set("User-Agent", userAgent)
+	req.Header.Set("Referer", "https://api.gov.pl")
 
 	resp, err := noRedirectClient.Do(req)
 	if err != nil {

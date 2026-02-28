@@ -2,6 +2,29 @@
 
 A self-hosted API for valuing Polish government savings bonds (obligacje skarbowe). It periodically fetches bond data published by the Ministry of Finance and exposes a simple HTTP endpoint to calculate the current (or historical) value of a bond.
 
+## Supported Bond Series
+
+| Series | Polish name | Tenor | Coupon frequency |
+|--------|-------------|-------|-----------------|
+| `TOS`  | Trzymiesięczne Oszczędnościowe | 3 months | — (fixed, at maturity) |
+| `DOS`  | Dwuletnie Oszczędnościowe | 2 years | Yearly |
+| `ROR`  | Roczne Oszczędnościowe z oprocentowaniem Rynkowym | 1 year | Monthly |
+| `DOR`  | Dwuletnie Oszczędnościowe z oprocentowaniem Rynkowym | 2 years | Monthly |
+| `COI`  | Czteroletnie Oszczędnościowe Indeksowane | 4 years | Yearly |
+| `EDO`  | Emerytalne Dziesięcioletnie Oszczędnościowe | 10 years | Yearly |
+| `ROS`  | Sześcioletnie Rodzinne Oszczędnościowe | 6 years | Yearly |
+| `ROD`  | Dwunastoletnie Rodzinne Oszczędnościowe | 12 years | Yearly |
+
+### Unsupported series
+
+The following series are known but not yet supported due to a different interest calculation model:
+
+| Seria | Nazwa |
+|-------|-------|
+| `OTS` | Trzymiesięczne Obligacje Skarbowe |
+
+If you need support for one of these (or another series), please [open an issue](https://github.com/maciekmm/obligacje/issues/new).
+
 ## Public Instance
 
 A publicly hosted instance is available at **https://obligacje.mionskowski.pl**.
