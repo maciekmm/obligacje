@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	indexURL = "https://www.gov.pl/web/finanse/obligacje-detaliczne1"
-	baseURL  = "https://www.gov.pl"
+	indexURL  = "https://www.gov.pl/web/finanse/obligacje-detaliczne1"
+	baseURL   = "https://www.gov.pl"
+	userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
 func scrapeXLSURL(ctx context.Context) (string, error) {
@@ -25,6 +26,7 @@ func scrapeXLSURL(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
+	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -105,6 +107,8 @@ func downloadLatestBondXLS(ctx context.Context, output string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
+
+	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
