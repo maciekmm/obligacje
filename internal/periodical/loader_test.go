@@ -171,36 +171,14 @@ func TestLoader_ErrBehaviorReturnError(t *testing.T) {
 	}
 	defer loader.Stop()
 
-	// Wait for first load
-	time.Sleep(10 * time.Millisecond)
+	// Wait for the background periodic load to fail and trigger ErrBehaviorReturnError
+	time.Sleep(60 * time.Millisecond)
 
-	const numReaders = 50
-	var wg sync.WaitGroup
-	readErrors := make(chan error, numReaders)
-
-	for i := 0; i < numReaders; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for j := 0; j < 100; j++ {
-				val, err := loader.Current()
-				if err != nil {
-					readErrors <- err
-					return
-				}
-				if val == "" {
-					readErrors <- errors.New("got zero value")
-					return
-				}
-				time.Sleep(time.Microsecond)
-			}
-		}()
+	_, err = loader.Current()
+	if err == nil {
+		t.Fatal("expected error to be returned by Current() after background load failure")
 	}
-
-	wg.Wait()
-	close(readErrors)
-
-	for err := range readErrors {
-		t.Errorf("concurrent read with errors failed: %v", err)
+	if err.Error() != "load error" {
+		t.Errorf("expected 'load error', got: %v", err)
 	}
 }
