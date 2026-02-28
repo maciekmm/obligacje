@@ -2,6 +2,9 @@
 
 A self-hosted API for valuing Polish government savings bonds (obligacje skarbowe). It periodically fetches bond data published by the Ministry of Finance and exposes a simple HTTP endpoint to calculate the current (or historical) value of a bond.
 
+> [!WARNING]
+> No guarantee is made that the results are accurate. Always verify important figures against the official [obligacjeskarbowe.pl](https://www.obligacjeskarbowe.pl) portal.
+
 ## Supported Bond Series
 
 | Series | Polish name | Tenor | Coupon frequency |
