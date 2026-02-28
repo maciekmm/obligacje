@@ -15,12 +15,11 @@ import (
 )
 
 type ValuationResponse struct {
-	Name        string  `json:"name"`
-	ISIN        string  `json:"isin"`
-	ValuatedAt  string  `json:"valuated_at"`
-	PurchaseDay int     `json:"purchase_day"`
-	Price       float64 `json:"price"`
-	Currency    string  `json:"currency"`
+	Name       string  `json:"name"`
+	ISIN       string  `json:"isin"`
+	ValuatedAt string  `json:"valuated_at"`
+	Price      float64 `json:"price"`
+	Currency   string  `json:"currency"`
 }
 
 func extractPurchaseDayFromName(name string) (int, error) {
@@ -94,12 +93,11 @@ func (s *Server) handleValuation(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(ValuationResponse{
-			Name:        nameWithPurchaseDay,
-			ISIN:        bnd.ISIN,
-			ValuatedAt:  valuatedAt.Format("2006-01-02"),
-			PurchaseDay: purchaseDay,
-			Price:       float64(price),
-			Currency:    "PLN",
+			Name:       nameWithPurchaseDay,
+			ISIN:       bnd.ISIN,
+			ValuatedAt: valuatedAt.Format("2006-01-02"),
+			Price:      float64(price),
+			Currency:   "PLN",
 		})
 		return
 	}

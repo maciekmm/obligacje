@@ -30,6 +30,7 @@ func NewServer(repo bond.Repository, logger *slog.Logger) *Server {
 
 func (s *Server) setupRoutes() {
 	s.handler.HandleFunc("GET /v1/bond/{name}/valuation", s.handleValuation)
+	s.handler.HandleFunc("GET /v1/bond/{name}/historical", s.handleHistorical)
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
