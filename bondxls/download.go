@@ -21,6 +21,12 @@ const (
 	userAgent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 )
 
+var noRedirectClient = &http.Client{
+	CheckRedirect: func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	},
+}
+
 func scrapeXLSURL(ctx context.Context) (string, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, indexURL, nil)
 	if err != nil {
@@ -28,7 +34,7 @@ func scrapeXLSURL(ctx context.Context) (string, error) {
 	}
 	req.Header.Set("User-Agent", userAgent)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := noRedirectClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("failed to fetch index page: %w", err)
 	}
@@ -110,7 +116,7 @@ func downloadLatestBondXLS(ctx context.Context, output string) error {
 
 	req.Header.Set("User-Agent", userAgent)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := noRedirectClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download file: %w", err)
 	}

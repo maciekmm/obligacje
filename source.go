@@ -28,8 +28,9 @@ type BondSource struct {
 func NewBondSource(logger *slog.Logger, dir string) (*BondSource, error) {
 	files := downloader.NewResilientFileDownloader(dir, validateBondFile, bondxls.DownloadLatestAndConvert)
 
-	const maxRetries = 3
-	const initialDelay = 2 * time.Second
+	const maxRetries = 10
+	const initialDelay = 1 * time.Second
+	const maxDelay = 5 * time.Second
 
 	loadFn := func() (bond.Repository, error) {
 		var lastErr error
@@ -46,7 +47,7 @@ func NewBondSource(logger *slog.Logger, dir string) (*BondSource, error) {
 				}
 			}
 			if attempt < maxRetries-1 {
-				delay := initialDelay * time.Duration(1<<attempt)
+				delay := min(initialDelay*time.Duration(1<<attempt), maxDelay)
 				logger.Error("failed to load bond data, retrying", "err", lastErr, "attempt", attempt+1, "next_retry_in", delay)
 				time.Sleep(delay)
 			}
