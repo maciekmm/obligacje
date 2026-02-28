@@ -29,6 +29,9 @@ func NewServer(repo bond.Repository, logger *slog.Logger) *Server {
 }
 
 func (s *Server) setupRoutes() {
+	s.handler.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "https://github.com/maciekmm/obligacje", http.StatusFound)
+	})
 	s.handler.HandleFunc("GET /v1/bond/{name}/valuation", s.handleValuation)
 	s.handler.HandleFunc("GET /v1/bond/{name}/historical", s.handleHistorical)
 }
