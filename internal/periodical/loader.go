@@ -2,6 +2,7 @@ package periodical
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync/atomic"
 	"time"
@@ -34,24 +35,30 @@ type Loader[T any] struct {
 	errBehavior ErrBehavior
 }
 
-func NewLoader[T any](interval time.Duration, load LoadFunc[T], errBehavior ErrBehavior) *Loader[T] {
+// NewLoader creates a new Loader that periodically calls load to refresh data.
+// The initial load is performed synchronously. If it fails, an error is returned
+// and the Loader is not started.
+func NewLoader[T any](interval time.Duration, load LoadFunc[T], errBehavior ErrBehavior) (*Loader[T], error) {
 	loader := &Loader[T]{
 		interval:    interval,
 		load:        load,
-		ticker:      time.NewTicker(interval),
 		errBehavior: errBehavior,
 	}
-	loader.start()
-	return loader
-}
 
-func (l *Loader[T]) start() {
+	data, err := load()
+	if err != nil {
+		return nil, fmt.Errorf("initial load failed: %w", err)
+	}
+	loader.current.Store(value[T]{data: data})
+
+	loader.ticker = time.NewTicker(interval)
 	go func() {
-		l.loadAndSet()
-		for range l.ticker.C {
-			l.loadAndSet()
+		for range loader.ticker.C {
+			loader.loadAndSet()
 		}
 	}()
+
+	return loader, nil
 }
 
 func (l *Loader[T]) loadAndSet() {

@@ -2,6 +2,7 @@ package obligacje
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"log/slog"
@@ -27,13 +28,36 @@ type BondSource struct {
 func NewBondSource(logger *slog.Logger, dir string) (*BondSource, error) {
 	files := downloader.NewResilientFileDownloader(dir, validateBondFile, bondxls.DownloadLatestAndConvert)
 
-	bondsLoader := periodical.NewLoader(12*time.Hour, func() (bond.Repository, error) {
-		file, err := files.DownloadWithFallback(context.Background())
-		if err != nil {
-			return nil, err
+	const maxRetries = 3
+	const initialDelay = 2 * time.Second
+
+	loadFn := func() (bond.Repository, error) {
+		var lastErr error
+		for attempt := range maxRetries {
+			file, err := files.DownloadWithFallback(context.Background())
+			if err != nil {
+				lastErr = err
+			} else {
+				repo, err := bondxls.LoadFromXLSX(logger, file)
+				if err != nil {
+					lastErr = err
+				} else {
+					return repo, nil
+				}
+			}
+			if attempt < maxRetries-1 {
+				delay := initialDelay * time.Duration(1<<attempt)
+				logger.Error("failed to load bond data, retrying", "err", lastErr, "attempt", attempt+1, "next_retry_in", delay)
+				time.Sleep(delay)
+			}
 		}
-		return bondxls.LoadFromXLSX(logger, file)
-	}, periodical.ErrBehaviorKeepOld)
+		return nil, fmt.Errorf("failed after %d attempts: %w", maxRetries, lastErr)
+	}
+
+	bondsLoader, err := periodical.NewLoader(12*time.Hour, loadFn, periodical.ErrBehaviorKeepOld)
+	if err != nil {
+		return nil, fmt.Errorf("initial bond data load failed: %w", err)
+	}
 
 	return &BondSource{
 		bondsLoader: bondsLoader,

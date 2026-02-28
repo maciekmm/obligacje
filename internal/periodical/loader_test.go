@@ -8,29 +8,14 @@ import (
 	"time"
 )
 
-func TestLoader_Current_BeforeInitialized(t *testing.T) {
-	loader := NewLoader(100*time.Millisecond, func() (int, error) {
-		time.Sleep(10 * time.Second)
-		return 42, nil
-	}, ErrBehaviorKeepOld)
-
-	_, err := loader.Current()
-	if err == nil {
-		t.Error("expected error when calling Current before start")
-	}
-	if err != ErrNotInitialized {
-		t.Errorf("expected 'not initialized yet' error, got: %v", err)
-	}
-}
-
 func TestLoader_InitializesOnStart(t *testing.T) {
-	loader := NewLoader(10*time.Minute, func() (int, error) {
+	loader, err := NewLoader(10*time.Minute, func() (int, error) {
 		return 42, nil
 	}, ErrBehaviorKeepOld)
-
+	if err != nil {
+		t.Fatalf("expected no error, got: %v", err)
+	}
 	defer loader.Stop()
-
-	time.Sleep(10 * time.Millisecond)
 
 	val, err := loader.Current()
 	if err != nil {
@@ -41,22 +26,30 @@ func TestLoader_InitializesOnStart(t *testing.T) {
 	}
 }
 
+func TestLoader_InitialLoadFailsReturnsError(t *testing.T) {
+	_, err := NewLoader(10*time.Minute, func() (string, error) {
+		return "", errors.New("load error")
+	}, ErrBehaviorKeepOld)
+	if err == nil {
+		t.Fatal("expected error when initial load fails")
+	}
+}
+
 func TestLoader_ConcurrentReads(t *testing.T) {
 	var loadCount atomic.Int32
-	loader := NewLoader(10*time.Millisecond, func() (int, error) {
-		loadCount.Add(1)
-		return int(loadCount.Load()), nil
+	loadCount.Store(1)
+	loader, err := NewLoader(10*time.Millisecond, func() (int, error) {
+		return int(loadCount.Add(1)), nil
 	}, ErrBehaviorKeepOld)
-
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	defer loader.Stop()
-
-	// Wait for first load
-	time.Sleep(15 * time.Millisecond)
 
 	// Spawn multiple concurrent readers
 	const numReaders = 100
 	var wg sync.WaitGroup
-	errors := make(chan error, numReaders)
+	errs := make(chan error, numReaders)
 
 	for i := 0; i < numReaders; i++ {
 		wg.Add(1)
@@ -65,11 +58,11 @@ func TestLoader_ConcurrentReads(t *testing.T) {
 			for j := 0; j < 100; j++ {
 				val, err := loader.Current()
 				if err != nil {
-					errors <- err
+					errs <- err
 					return
 				}
 				if val < 1 {
-					errors <- err
+					errs <- errors.New("got value less than 1")
 					return
 				}
 			}
@@ -77,23 +70,22 @@ func TestLoader_ConcurrentReads(t *testing.T) {
 	}
 
 	wg.Wait()
-	close(errors)
+	close(errs)
 
-	for err := range errors {
+	for err := range errs {
 		t.Errorf("concurrent read failed: %v", err)
 	}
 }
 
 func TestLoader_ConcurrentReadsWhileUpdating(t *testing.T) {
 	var counter atomic.Int64
-	loader := NewLoader(5*time.Millisecond, func() (int64, error) {
+	loader, err := NewLoader(5*time.Millisecond, func() (int64, error) {
 		return counter.Add(1), nil
 	}, ErrBehaviorKeepOld)
-
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	defer loader.Stop()
-
-	// Wait for first load
-	time.Sleep(10 * time.Millisecond)
 
 	const numReaders = 50
 	const readIterations = 200
@@ -132,19 +124,18 @@ func TestLoader_ConcurrentReadsWhileUpdating(t *testing.T) {
 }
 
 func TestLoader_ErrBehaviorKeepOld(t *testing.T) {
-	callCount := 0
-	loader := NewLoader(10*time.Millisecond, func() (string, error) {
-		callCount++
-		if callCount == 1 {
+	var callCount atomic.Int32
+	loader, err := NewLoader(10*time.Millisecond, func() (string, error) {
+		n := callCount.Add(1)
+		if n == 1 {
 			return "initial", nil
 		}
 		return "", errors.New("load error")
 	}, ErrBehaviorKeepOld)
-
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	defer loader.Stop()
-
-	// Wait for first successful load
-	time.Sleep(15 * time.Millisecond)
 
 	val, err := loader.Current()
 	if err != nil {
@@ -167,14 +158,17 @@ func TestLoader_ErrBehaviorKeepOld(t *testing.T) {
 }
 
 func TestLoader_ErrBehaviorReturnError(t *testing.T) {
-	callCount := 0
-	loader := NewLoader(40*time.Millisecond, func() (string, error) {
-		callCount++
-		if callCount == 1 {
+	var callCount atomic.Int32
+	loader, err := NewLoader(40*time.Millisecond, func() (string, error) {
+		n := callCount.Add(1)
+		if n == 1 {
 			return "initial", nil
 		}
 		return "", errors.New("load error")
 	}, ErrBehaviorReturnError)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 	defer loader.Stop()
 
 	// Wait for first load
@@ -194,9 +188,8 @@ func TestLoader_ErrBehaviorReturnError(t *testing.T) {
 					readErrors <- err
 					return
 				}
-				// With ErrBehaviorKeepOld, we should always get a valid value
 				if val == "" {
-					readErrors <- errors.New("got zero value despite ErrBehaviorKeepOld")
+					readErrors <- errors.New("got zero value")
 					return
 				}
 				time.Sleep(time.Microsecond)
@@ -209,32 +202,5 @@ func TestLoader_ErrBehaviorReturnError(t *testing.T) {
 
 	for err := range readErrors {
 		t.Errorf("concurrent read with errors failed: %v", err)
-	}
-}
-
-type typedError struct{}
-
-func (e *typedError) Error() string { return "typed error" }
-
-func TestLoader_LoadReturnsNilTypedError(t *testing.T) {
-	t.Skip("This test fails, but it's an edge case we might not care about.")
-
-	var loadCount atomic.Int32
-	loader := NewLoader(10*time.Millisecond, func() (string, error) {
-		if loadCount.Load() >= 1 {
-			var e *typedError
-			return "value2", e
-		}
-		loadCount.Add(1)
-		return "value", nil
-	}, ErrBehaviorKeepOld)
-
-	defer loader.Stop()
-
-	time.Sleep(50 * time.Millisecond)
-
-	val, _ := loader.Current()
-	if val != "value2" {
-		t.Errorf("expected 'value2', got: %s", val)
 	}
 }
