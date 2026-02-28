@@ -30,15 +30,18 @@ If you need support for one of these (or another series), please [open an issue]
 A publicly hosted instance is available at **https://obligacje.mionskowski.pl**.
 
 ```bash
-# Get current valuation of a TOS bond (purchased on the 1st)
-curl https://obligacje.mionskowski.pl/v1/bond/TOS112501/valuation
-
-# Get valuation as JSON for a specific date
 curl -H "Accept: application/json" \
   "https://obligacje.mionskowski.pl/v1/bond/TOS112501/valuation?valuated_at=2025-12-06"
+```
 
-# Get historical pricing over a date range
-curl "https://obligacje.mionskowski.pl/v1/bond/TOS112501/historical?from=2025-12-01&to=2025-12-07"
+```json
+{
+  "name": "TOS112501",
+  "isin": "PL0000123456",
+  "valuated_at": "2025-12-06",
+  "price": 102.72,
+  "currency": "PLN"
+}
 ```
 
 ## Self-Hosting
