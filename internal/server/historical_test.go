@@ -127,9 +127,9 @@ func TestHandleHistorical_Errors(t *testing.T) {
 			wantCode: http.StatusBadRequest,
 		},
 		{
-			name:     "span exceeds 366 days",
+			name:     "to after today",
 			bondName: "TOS112501",
-			query:    "from=2023-01-01&to=2024-01-03",
+			query:    "from=2023-01-01&to=2030-01-03",
 			wantCode: http.StatusBadRequest,
 		},
 		{

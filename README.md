@@ -132,8 +132,6 @@ Returns daily valuations of a bond over a date range.
 | `from`    | Yes      | Start date in `YYYY-MM-DD` format |
 | `to`      | Yes      | End date in `YYYY-MM-DD` format |
 
-The maximum span between `from` and `to` is **366 days**. Days before the bond's purchase date are omitted from the result.
-
 #### Response
 
 Always returns `application/json`:

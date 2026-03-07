@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"errors"
-	"math"
 	"net/http"
 	"time"
 
@@ -11,8 +10,6 @@ import (
 	"github.com/maciekmm/obligacje/calculator"
 	"github.com/maciekmm/obligacje/tz"
 )
-
-const maxHistoricalDays = 366
 
 type HistoricalResponse struct {
 	Valuations map[string]float64 `json:"valuations"`
@@ -44,11 +41,6 @@ func (s *Server) handleHistorical(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if int(math.Round(to.Sub(from).Hours()/24)) > maxHistoricalDays {
-		http.Error(w, "date range must not exceed 366 days", http.StatusBadRequest)
-		return
-	}
-
 	nameWithPurchaseDay := r.PathValue("name")
 	purchaseDay, err := extractPurchaseDayFromName(nameWithPurchaseDay)
 	if err != nil {
@@ -67,6 +59,16 @@ func (s *Server) handleHistorical(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		s.log.Info("error looking up bond", "name", name, "err", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+
+	if from.Before(bnd.SaleStart) {
+		http.Error(w, "from must not be before sale start", http.StatusBadRequest)
+		return
+	}
+
+	if to.After(time.Now().Truncate(24*time.Hour).AddDate(0, 0, 1)) {
+		http.Error(w, "to must not be after today", http.StatusBadRequest)
 		return
 	}
 
