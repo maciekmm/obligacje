@@ -23,11 +23,20 @@ type MetadataResponse struct {
 }
 
 func (s *Server) handleMetadata(w http.ResponseWriter, r *http.Request) {
-	nameWithPotentialSuffix := r.PathValue("name")
-	name := nameWithPotentialSuffix
-	purchaseDay, err := extractPurchaseDayFromName(nameWithPotentialSuffix)
-	if err == nil {
-		name = nameWithPotentialSuffix[:len(nameWithPotentialSuffix)-2]
+	var (
+		purchaseDay int
+		name        string
+		err         error
+	)
+	name = r.PathValue("name")
+	if len(name) > 7 {
+		purchaseDay, err = extractPurchaseDayFromName(name)
+		if err != nil {
+			s.log.Info("invalid name", "name", name, "err", err)
+			http.Error(w, "invalid name", http.StatusBadRequest)
+			return
+		}
+		name = name[:len(name)-2]
 	}
 
 	bnd, err := s.repo.Lookup(name)

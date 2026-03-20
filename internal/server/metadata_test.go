@@ -43,7 +43,7 @@ func TestHandleMetadata(t *testing.T) {
 		},
 		{
 			name:     "bond not found",
-			bondName: "NONEXIST01",
+			bondName: "NONEXST",
 			wantCode: http.StatusNotFound,
 		},
 	}
