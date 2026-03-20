@@ -34,6 +34,7 @@ func (s *Server) setupRoutes() {
 	})
 	s.handler.HandleFunc("GET /v1/bond/{name}/valuation", s.handleValuation)
 	s.handler.HandleFunc("GET /v1/bond/{name}/historical", s.handleHistorical)
+	s.handler.HandleFunc("GET /v1/bond/{name}", s.handleMetadata)
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
