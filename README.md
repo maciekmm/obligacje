@@ -153,3 +153,44 @@ Always returns `application/json`:
 | `400`  | Missing or invalid `from`/`to`, `to` before `from`, span exceeds 366 days, or invalid bond name |
 | `404`  | Bond series not found |
 | `500`  | Internal server error |
+
+---
+
+### `GET /v1/bond/{name}`
+
+Returns metadata for a specific bond series.
+
+#### Path Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `name`    | Bond series name (e.g., `TOS0125`) or a specific bond with purchase day (e.g., `TOS012515`) |
+
+#### Response
+
+Returns `application/json` with bond details. If a specific purchase day is provided, `maturity_date` is included in the response.
+
+```json
+{
+  "name": "TOS0125",
+  "isin": "PL0000123456",
+  "face_value": 100,
+  "months_to_maturity": 3,
+  "exchange_price": 100,
+  "margin": 0,
+  "interest_periods": [
+    3.0
+  ],
+  "coupon_payments_frequency": 0,
+  "sale_start": "2025-01-01",
+  "sale_end": "2025-01-31",
+  "maturity_date": "2025-04-15"
+}
+```
+
+#### Error Responses
+
+| Status | Reason |
+|--------|--------|
+| `404`  | Bond series not found |
+| `500`  | Internal server error |
