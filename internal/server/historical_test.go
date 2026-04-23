@@ -74,8 +74,16 @@ func TestHandleHistorical_HappyPath(t *testing.T) {
 			}
 
 			for date, wantPrice := range tt.spotChecks {
-				gotPrice, ok := resp.Valuations[date]
-				if !ok {
+				var gotPrice float64
+				found := false
+				for _, v := range resp.Valuations {
+					if v.Date == date {
+						gotPrice = v.Price
+						found = true
+						break
+					}
+				}
+				if !found {
 					t.Errorf("missing valuation for date %s", date)
 					continue
 				}
@@ -195,12 +203,26 @@ func TestHandleHistorical_FromBeforePurchaseDate(t *testing.T) {
 	}
 
 	// 2025-09-01 should be omitted (before purchase date)
-	if _, ok := resp.Valuations["2025-09-01"]; ok {
+	found0901 := false
+	for _, v := range resp.Valuations {
+		if v.Date == "2025-09-01" {
+			found0901 = true
+			break
+		}
+	}
+	if found0901 {
 		t.Error("expected date before purchase to be omitted, but it was present")
 	}
 
 	// 2025-09-02 onwards should be present
-	if _, ok := resp.Valuations["2025-09-02"]; !ok {
+	found0902 := false
+	for _, v := range resp.Valuations {
+		if v.Date == "2025-09-02" {
+			found0902 = true
+			break
+		}
+	}
+	if !found0902 {
 		t.Error("expected purchase date to be present in valuations")
 	}
 }

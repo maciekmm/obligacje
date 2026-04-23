@@ -11,8 +11,13 @@ import (
 	"github.com/maciekmm/obligacje/tz"
 )
 
+type Valuation struct {
+	Date  string  `json:"date"`
+	Price float64 `json:"price"`
+}
+
 type HistoricalResponse struct {
-	Valuations map[string]float64 `json:"valuations"`
+	Valuations []Valuation `json:"valuations"`
 }
 
 func (s *Server) handleHistorical(w http.ResponseWriter, r *http.Request) {
@@ -72,7 +77,7 @@ func (s *Server) handleHistorical(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valuations := make(map[string]float64)
+	valuations := make([]Valuation, 0, int(to.Sub(from).Hours())/24+1)
 	for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
 		price, err := s.calc.Calculate(bnd, purchaseDay, d)
 		if errors.Is(err, calculator.ErrValuationDateBeforePurchaseDate) {
@@ -83,7 +88,10 @@ func (s *Server) handleHistorical(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "internal error", http.StatusInternalServerError)
 			return
 		}
-		valuations[d.Format("2006-01-02")] = float64(price)
+		valuations = append(valuations, Valuation{
+			Date:  d.Format("2006-01-02"),
+			Price: float64(price),
+		})
 	}
 
 	s.log.Info("historical valuation", "name", name, "purchase_day", purchaseDay, "from", from, "to", to, "days", len(valuations))
